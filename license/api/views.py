@@ -1,3 +1,4 @@
+import json
 from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView
@@ -6,20 +7,31 @@ from license.models import License
 from rest_framework import status
 from rest_framework.response import Response
 from drf_yasg.utils import swagger_auto_schema
+from account.authentication import JWTAuthentication
+from license.api.serializer import LicenseSerailizer
 
 
-class LicenseView(ListAPIView):
+class LicenseView(APIView):
     serializer_class = LicenseSerailizer
-    queryset = License.objects.all()
+    authentication_classes = [JWTAuthentication]
 
-    @swagger_auto_schema(tags=["강사증 리스트"])
-    def get(self, request):
-        return None
-        # try:
-        #     instructors = Instructor.objects.all()
-        # except Instructor.DoesNotExist:
-        #     return Response({"instructors": []}, status=status.HTTP_200_OK)
+    def post(self, request):
+        user = JWTAuthentication.authenticate(self, request)
+        user_id = user[1].id
 
-        # serializer = self.serializer_class(instructors, many=True)
+        body = json.loads(request.body)
+        body["user_id"] = user_id
 
-        # return Response({"instructors": serializer.data}, status=status.HTTP_200_OK)
+        serializer = self.serializer_class(data=body)
+
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+
+            return Response(
+                {"license": serializer.data}, status=status.HTTP_201_CREATED
+            )
+
+        else:
+            return Response(
+                {"license": serializer.error}, status=status.HTTP_400_BAD_REQUEST
+            )
