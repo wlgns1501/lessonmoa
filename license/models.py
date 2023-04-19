@@ -8,9 +8,17 @@ class License(models.Model):
     name = models.CharField(max_length=100, null=False, blank=False)
     image_url = models.URLField(null=False, blank=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="license")
-    category_sport = models.ForeignKey(
+    category = models.ForeignKey(
         Category, on_delete=models.CASCADE, related_name="license"
     )
+
+    class Status(models.TextChoices):
+        PENDING = "Pending"
+        ACTIVE = "Active"
+        DELETED = "Deleted"
+
+    status = models.CharField(choices=Status.choices, default=Status.PENDING)
+    created_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         db_table = "license"

@@ -35,3 +35,43 @@ class LicenseSerailizer(serializers.ModelSerializer):
     class Meta:
         model = License
         fields = ["id", "name", "image_url", "user_id", "category_id"]
+
+
+class LicenseDetailSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(read_only=True)
+    name = serializers.CharField()
+    image_url = serializers.URLField()
+    user_id = serializers.IntegerField(read_only=True)
+    category_id = serializers.IntegerField(write_only=True)
+    status = serializers.CharField(read_only=True)
+    created_at = serializers.DateTimeField(read_only=True)
+
+    def patch(self, intance, validated_data):
+        name = validated_data["name"]
+        image_url = validated_data["image_url"]
+        category_id = validated_data["category_id"]
+
+        if intance.name != name:
+            intance.name = name
+
+        if intance.image_url != image_url:
+            intance.image_url = image_url
+
+        if intance.category_id != category_id:
+            intance.category_id = category_id
+
+        intance.save()
+
+        return intance
+
+    class Meta:
+        model = License
+        fields = [
+            "id",
+            "name",
+            "image_url",
+            "status",
+            "user_id",
+            "category_id",
+            "created_at",
+        ]
