@@ -4,5 +4,5 @@ from category.api.views import *
 
 urlpatterns = [
     path("", CategoriesView.as_view(), name="categories"),
-    path("<int:category_sport_id>/", CategoryView.as_view(), name="category"),
+    path("<int:category_id>/", CategoryView.as_view(), name="category"),
 ]

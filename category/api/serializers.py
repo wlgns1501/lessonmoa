@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from category.models import Category
 from django.db import IntegrityError
+from sub_category.api.serializers import *
 
 
 class CategorySerializer(serializers.Serializer):
@@ -30,8 +31,9 @@ class CategorySerializer(serializers.Serializer):
 class CategoryDetailSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     name = serializers.CharField()
+    sub_category = SubCategorySerializer(read_only=True, many=True)
     created_at = serializers.DateTimeField(read_only=True)
 
     class Meta:
         model = Category
-        fields = ["id", "name", "created_at"]
+        fields = ["id", "name", "sub_category", "created_at"]

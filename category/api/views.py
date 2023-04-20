@@ -31,9 +31,10 @@ class CategoryView(APIView):
     serializer_classes = CategorySerializer
 
     @swagger_auto_schema(tags=["카테고리"])
-    def get(self, request, category_sport_id: int):
+    def get(self, request, category_id: int):
         try:
-            category = Category.objects.get(id=category_sport_id)
+            category = Category.objects.get(id=category_id)
+            print(category.sub_category)
         except Category.DoesNotExist:
             return Response(
                 {"error": "해당 카테고리가 존재하지 않습니다."}, status=status.HTTP_404_NOT_FOUND

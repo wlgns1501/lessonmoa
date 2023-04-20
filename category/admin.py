@@ -7,7 +7,7 @@ from django import forms
 class CategoryForm(forms.ModelForm):
     class Meta:
         model = Category
-        exclude = ["createdAt"]
+        exclude = ["created_at"]
 
 
 class CategoryAdmin(admin.ModelAdmin):

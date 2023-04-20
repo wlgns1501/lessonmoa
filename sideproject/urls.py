@@ -23,6 +23,7 @@ urlpatterns = [
     path("auth/", include("account.urls")),
     path("license/", include("license.urls")),
     path("category/", include("category.urls")),
+    path("category/", include("sub_category.urls")),
     re_path(
         r"^swagger(?P<format>\.json|\.yaml)$",
         schema_view.without_ui(cache_timeout=0),
