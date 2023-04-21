@@ -31,9 +31,9 @@ class CategorySerializer(serializers.Serializer):
 class CategoryDetailSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     name = serializers.CharField()
-    sub_category = SubCategorySerializer(read_only=True, many=True)
+    sub_categories = SubCategorySerializer(read_only=True, many=True)
     created_at = serializers.DateTimeField(read_only=True)
 
     class Meta:
         model = Category
-        fields = ["id", "name", "sub_category", "created_at"]
+        fields = ["id", "name", "sub_categories", "created_at"]

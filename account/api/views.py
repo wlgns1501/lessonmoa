@@ -13,6 +13,7 @@ from django.utils.decorators import method_decorator
 from account.authentication import JWTAuthentication
 from account.models import User
 from account.api.serializers import SignInSerializer, UserSerializer
+from django.views.decorators.csrf import csrf_exempt
 
 
 def generate_access_token(user):
@@ -72,6 +73,7 @@ class SignUpView(APIView):
     queryset = User.objects.all()
 
     @transaction.atomic
+    @csrf_exempt
     @swagger_auto_schema(tags=["유저 생성"], request_body=UserSerializer)
     def post(self, request):
         body = json.loads(request.body)
@@ -82,15 +84,9 @@ class SignUpView(APIView):
         if serializer.is_valid(raise_exception=True):
             serializer.save()
 
-            return Response(
-                {"user": serializer.data},
-                status=status.HTTP_201_CREATED,
-            )
+            return Response({"user": serializer.data}, status=status.HTTP_201_CREATED,)
         else:
-            return Response(
-                {"message": serializer.errors},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            return Response({"message": serializer.errors}, status=status.HTTP_400_BAD_REQUEST,)
 
 
 class SignInView(APIView):

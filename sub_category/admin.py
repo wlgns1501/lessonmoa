@@ -10,7 +10,7 @@ class SubCategoryForm(forms.ModelForm):
 
 
 class SubCategoryAdmin(admin.ModelAdmin):
-    list_display = ["id", "name", "created_at"]
+    list_display = ["id", "name", "category", "created_at"]
 
     def save_model(self, request, obj, form, change):
         obj.save()

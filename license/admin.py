@@ -21,9 +21,8 @@ class LicenseAdmin(admin.ModelAdmin):
 
         for license in queryset:
             update_license = queryset.update(status="Active")
-            # user = license.user
-            # user.is_instructor = True
-            # user.save()
+
+        # count_active_licenses = License.objects.filter()
 
         self.message_user(request, "{}건의 License Active 상태로 변경".format(update_license))
 

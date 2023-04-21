@@ -28,17 +28,14 @@ class CategoriesView(APIView):
 
 
 class CategoryView(APIView):
-    serializer_classes = CategorySerializer
+    serializer_classes = CategoryDetailSerializer
 
     @swagger_auto_schema(tags=["카테고리"])
     def get(self, request, category_id: int):
         try:
-            category = Category.objects.get(id=category_id)
-            print(category.sub_category)
+            category = Category.objects.prefetch_related("sub_categories").get(id=category_id)
         except Category.DoesNotExist:
-            return Response(
-                {"error": "해당 카테고리가 존재하지 않습니다."}, status=status.HTTP_404_NOT_FOUND
-            )
+            return Response({"error": "해당 카테고리가 존재하지 않습니다."}, status=status.HTTP_404_NOT_FOUND)
 
         serializer = self.serializer_classes(category)
 

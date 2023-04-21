@@ -1,10 +1,9 @@
 {
-  // "python.formatting.provider": "black",
-  // "python.formatting.blackArgs": ["--line-length", "120"],
-  // "python.formatting.blackPath": "/Users/yujihun/opt/anaconda3/bin/black",
+  "python.formatting.provider": "black",
+  "python.formatting.blackArgs": ["--line-length", "120"],
+  "python.formatting.blackPath": "/Users/yujihun/opt/anaconda3/bin/black",
   "python.linting.enabled": true,
   "python.linting.pylintEnabled": true,
-  // "python.linting.mypyEnabled": false,
   "python.linting.pylintArgs": ["--init-hook"],
   "python.analysis.extraPaths": ["app", "another/path/etc"],
   "[python]": {
