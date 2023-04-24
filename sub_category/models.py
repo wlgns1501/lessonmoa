@@ -8,5 +8,8 @@ class SubCategory(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name="sub_categories")
     created_at = models.DateTimeField(auto_now=True)
 
+    def __str__(self):
+        return self.name
+
     class Meta:
         db_table = "sub_category"

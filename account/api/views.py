@@ -18,9 +18,14 @@ from django.views.decorators.csrf import csrf_exempt
 
 def generate_access_token(user):
     dt = datetime.now() + timedelta(days=1)
-
+    print(user["is_instructor"])
     token = jwt.encode(
-        {"id": user["id"], "email": user["email"], "exp": dt.utcfromtimestamp(dt.timestamp())},
+        {
+            "id": user["id"],
+            "email": user["email"],
+            "is_instructor": user["is_instructor"],
+            "exp": dt.utcfromtimestamp(dt.timestamp()),
+        },
         settings.SECRET_KEY,
         algorithm="HS256",
     )
@@ -32,7 +37,12 @@ def generate_refresh_token(user):
     dt = datetime.now() + timedelta(days=7)
 
     token = jwt.encode(
-        {"id": user["id"], "email": user["email"], "exp": dt.utcfromtimestamp(dt.timestamp())},
+        {
+            "id": user["id"],
+            "email": user["email"],
+            "is_instructor": user["is_instructor"],
+            "exp": dt.utcfromtimestamp(dt.timestamp()),
+        },
         settings.SECRET_KEY,
         algorithm="HS256",
     )

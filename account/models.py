@@ -23,9 +23,7 @@ class UserManager(BaseUserManager):
             raise ValueError("must have user nickname")
         if not name:
             raise ValueError("must have user name")
-        user = self.model(
-            email=self.normalize_email(email), nickname=nickname, name=name
-        )
+        user = self.model(email=self.normalize_email(email), nickname=nickname, name=name)
         user.set_password(password)
         user.save(using=self._db)
         return user
@@ -40,13 +38,9 @@ class UserManager(BaseUserManager):
 
 class User(AbstractBaseUser):
     id = models.AutoField(primary_key=True)
-    email = models.EmailField(
-        default="", max_length=50, null=False, blank=False, unique=True
-    )
+    email = models.EmailField(default="", max_length=50, null=False, blank=False, unique=True)
     password = models.CharField(default="", max_length=100, null=False, blank=False)
-    nickname = models.CharField(
-        default="", max_length=50, null=False, blank=False, unique=True
-    )
+    nickname = models.CharField(default="", max_length=50, null=False, blank=False, unique=True)
     is_instructor = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now=True)
 
@@ -65,18 +59,13 @@ class User(AbstractBaseUser):
 @receiver(pre_save, sender=User)
 def user_encode_password_pre_save(sender, instance, **kwargs):
     if not instance.id:
-        input_hashed_password: bytes = hashed_password(
-            instance.password.encode("utf-8")
-        )
+        input_hashed_password: bytes = hashed_password(instance.password.encode("utf-8"))
         input_decode_password: str = decoded_password(input_hashed_password)
 
         instance.password = input_decode_password
 
     elif (
-        bcrypt.checkpw(
-            instance.password.encode("utf-8"),
-            User.objects.get(id=instance.id).password.encode("utf-8"),
-        )
+        bcrypt.checkpw(instance.password.encode("utf-8"), User.objects.get(id=instance.id).password.encode("utf-8"),)
         == False
     ):
 

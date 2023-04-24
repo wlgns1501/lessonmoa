@@ -17,6 +17,7 @@ from account.models import User
 class JWT_TYPE:
     id: int
     email: str
+    is_instructor: bool
     exp: str
 
 

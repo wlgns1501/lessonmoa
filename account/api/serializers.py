@@ -17,9 +17,7 @@ class UserSerializer(serializers.ModelSerializer):
         nickname = validated_data["nickname"]
 
         try:
-            user = User.objects.create(
-                email=email, password=password, nickname=nickname
-            )
+            user = User.objects.create(email=email, password=password, nickname=nickname)
 
         except IntegrityError as e:
             if "account_user_email_key" in e.args[0]:
@@ -33,10 +31,7 @@ class UserSerializer(serializers.ModelSerializer):
         if instance.email != validated_data["email"]:
             instance.email = validated_data["email"]
 
-        if not bcrypt.checkpw(
-            validated_data["password"].encode("utf-8"),
-            instance.password.encode("utf-8"),
-        ):
+        if not bcrypt.checkpw(validated_data["password"].encode("utf-8"), instance.password.encode("utf-8"),):
             instance.password = validated_data["password"]
 
         if instance.nickname != validated_data["nickname"]:
@@ -66,6 +61,7 @@ class SignInSerializer(serializers.ModelSerializer):
     email = serializers.CharField(max_length=50)
     password = serializers.CharField(max_length=100, write_only=True)
     nickname = serializers.CharField(read_only=True)
+    is_instructor = serializers.BooleanField(read_only=True)
     last_login = serializers.DateTimeField(read_only=True)
 
     def validate(self, validated_data):
@@ -96,16 +92,19 @@ class SignInSerializer(serializers.ModelSerializer):
         user.last_login = timezone.now()
         user.save(update_fields=["last_login"])
 
+        print(user.is_instructor)
+
         return {
             "id": user.id,
             "email": user.email,
             "nickname": user.nickname,
+            "is_instructor": user.is_instructor,
             "last_login": user.last_login,
         }
 
     class Meta:
         model = User
-        fields = ["id", "email", "nickname", "password", "last_login"]
+        fields = ["id", "email", "nickname", "password", "is_instructor", "last_login"]
 
 
 # class SignOutSerializer(serializers.ModelSerializer):

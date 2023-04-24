@@ -8,11 +8,17 @@ class Lesson(models.Model):
     name = models.CharField(max_length=100, null=False, blank=False)
     limit_user = models.IntegerField(null=False, blank=False, default=12)
     user_count = models.IntegerField(default=limit_user)
+
     sub_category = models.ForeignKey(SubCategory, on_delete=models.CASCADE, related_name="lessons")
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="lesson")
 
-    start_date = models.DateTimeField(auto_now=True)
-    end_date = models.DateTimeField(auto_now=True)
+    start_date = models.DateTimeField()
+    end_date = models.DateTimeField()
+
+    # class Status(models.TextChoices):
+    #     recruitment = "Recruitment",
+
+    # status = models.CharField(choices=Status.choices)
 
     created_at = models.DateTimeField(auto_now=True)
 
