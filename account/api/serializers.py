@@ -1,7 +1,8 @@
 from django.utils import timezone
 import bcrypt
 from django.db import IntegrityError
-from rest_framework import serializers
+from rest_framework.response import Response
+from rest_framework import serializers, status
 from account.models import User
 
 
@@ -11,19 +12,24 @@ class UserSerializer(serializers.ModelSerializer):
     nickname = serializers.CharField(max_length=50)
     created_at = serializers.DateTimeField(read_only=True)
 
-    def post(self, validated_data):
+    def validate(self, validated_data):
         email = validated_data["email"]
         password = validated_data["password"]
         nickname = validated_data["nickname"]
 
-        try:
-            user = User.objects.create(email=email, password=password, nickname=nickname)
+        if User.objects.filter(email=email).exists():
+            raise serializers.ValidationError("중복된 이메일 입니다.")
+        elif User.objects.filter(nickname=nickname).exists():
+            raise serializers.ValidationError("중복된 닉네임 입니다.")
 
-        except IntegrityError as e:
-            if "account_user_email_key" in e.args[0]:
-                raise serializers.ValidationError("중복된 이메일 입니다.")
-            elif "account_user_nickname_key" in e.args[0]:
-                raise serializers.ValidationError("중복된 닉네임 입니다.")
+        return validated_data
+
+    def create(self, validated_data):
+        email = validated_data["email"]
+        password = validated_data["password"]
+        nickname = validated_data["nickname"]
+
+        user = User.objects.create(email=email, password=password, nickname=nickname)
 
         return user
 
@@ -31,7 +37,10 @@ class UserSerializer(serializers.ModelSerializer):
         if instance.email != validated_data["email"]:
             instance.email = validated_data["email"]
 
-        if not bcrypt.checkpw(validated_data["password"].encode("utf-8"), instance.password.encode("utf-8"),):
+        if not bcrypt.checkpw(
+            validated_data["password"].encode("utf-8"),
+            instance.password.encode("utf-8"),
+        ):
             instance.password = validated_data["password"]
 
         if instance.nickname != validated_data["nickname"]:
@@ -39,11 +48,12 @@ class UserSerializer(serializers.ModelSerializer):
 
         try:
             instance.save()
-        except IntegrityError as e:
-            if "account_user_email_key" in e.args[0]:
-                raise serializers.ValidationError("중복된 이메일 입니다.")
-            elif "account_user_nickname_key" in e.args[0]:
-                raise serializers.ValidationError("중복된 닉네임 입니다.")
+
+        except IntegrityError:
+            if User.objects.filter(email=validated_data["email"]).exists():
+                return Response({"error": "중복된 이메일 입니다."}, status=status.HTTP_400_BAD_REQUEST)
+            elif User.objects.filter(nickname=validated_data["nickname"]).exists():
+                return serializers.ValidationError("중복된 닉네임 입니다.")
 
         return instance
 

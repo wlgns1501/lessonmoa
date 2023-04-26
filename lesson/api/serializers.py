@@ -9,7 +9,7 @@ class LessonSerializer(serializers.ModelSerializer):
     limit_user = serializers.IntegerField()
     user_count = serializers.IntegerField()
     user_id = serializers.IntegerField(write_only=True)
-    user = UserSerializer(read_only=True)
+    # user = UserSerializer(read_only=True)
     start_date = serializers.DateTimeField()
     end_date = serializers.DateTimeField()
     created_at = serializers.DateTimeField()
@@ -21,7 +21,7 @@ class LessonSerializer(serializers.ModelSerializer):
             "name",
             "limit_user",
             "user_count",
-            "user",
+            # "user",
             "user_id",
             "start_date",
             "end_date",
@@ -37,4 +37,3 @@ class UserLessonSerializer(serializers.ModelSerializer):
     class Meta:
         model = User_Lesson
         fields = ["id", "user_id", "lesson_id"]
-
