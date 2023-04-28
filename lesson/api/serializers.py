@@ -4,15 +4,15 @@ from lesson.models import Lesson, User_Lesson
 
 
 class LessonSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField()
+    id = serializers.IntegerField(read_only=True)
     name = serializers.CharField()
     limit_user = serializers.IntegerField()
-    user_count = serializers.IntegerField()
-    user_id = serializers.IntegerField(write_only=True)
+    user_count = serializers.IntegerField(read_only=True)
+    # user_id = serializers.IntegerField(write_only=True)
     # user = UserSerializer(read_only=True)
     start_date = serializers.DateTimeField()
     end_date = serializers.DateTimeField()
-    created_at = serializers.DateTimeField()
+    created_at = serializers.DateTimeField(read_only=True)
 
     class Meta:
         model = Lesson
@@ -22,7 +22,7 @@ class LessonSerializer(serializers.ModelSerializer):
             "limit_user",
             "user_count",
             # "user",
-            "user_id",
+            # "user_id",
             "start_date",
             "end_date",
             "created_at",

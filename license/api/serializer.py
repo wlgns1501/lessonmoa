@@ -3,7 +3,7 @@ from license.models import License
 
 
 class LicenseSerailizer(serializers.ModelSerializer):
-    name = serializers.CharField(max_length=100)
+    name = serializers.CharField()
     image_url = serializers.URLField()
     user_id = serializers.IntegerField(write_only=True)
     category_id = serializers.IntegerField(write_only=True)
@@ -26,9 +26,7 @@ class LicenseSerailizer(serializers.ModelSerializer):
         if category_id is None:
             return serializers.ValidationError("카테고리를 입력하지 않았습니다.")
 
-        license = License.objects.create(
-            name=name, image_url=image_url, user_id=user_id, category_id=category_id
-        )
+        license = License.objects.create(name=name, image_url=image_url, user_id=user_id, category_id=category_id)
 
         return license
 
