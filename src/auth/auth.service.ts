@@ -38,7 +38,6 @@ export class AuthService {
 
       return { success: true };
     } catch (error) {
-      console.log(error.code);
       switch (error.code) {
         case POSTGRES_ERROR_CODE.DUPLICATED_KEY_ERROR:
           if (error.detail.includes('email')) {
@@ -101,12 +100,8 @@ export class AuthService {
 
   @Transactional()
   async signOut(user: User) {
-    try {
-      this.authRepository = this.connection.getCustomRepository(AuthRepository);
-      const userId = user.id;
-      await this.authRepository.signOut(userId);
-    } catch (error) {
-      console.log(error);
-    }
+    this.authRepository = this.connection.getCustomRepository(AuthRepository);
+    const userId = user.id;
+    await this.authRepository.signOut(userId);
   }
 }

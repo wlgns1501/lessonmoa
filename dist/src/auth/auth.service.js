@@ -36,7 +36,6 @@ let AuthService = class AuthService {
             return { success: true };
         }
         catch (error) {
-            console.log(error.code);
             switch (error.code) {
                 case postgres_error_1.POSTGRES_ERROR_CODE.DUPLICATED_KEY_ERROR:
                     if (error.detail.includes('email')) {
@@ -78,14 +77,9 @@ let AuthService = class AuthService {
         return { accessToken, refreshToken };
     }
     async signOut(user) {
-        try {
-            this.authRepository = this.connection.getCustomRepository(auth_repository_1.AuthRepository);
-            const userId = user.id;
-            await this.authRepository.signOut(userId);
-        }
-        catch (error) {
-            console.log(error);
-        }
+        this.authRepository = this.connection.getCustomRepository(auth_repository_1.AuthRepository);
+        const userId = user.id;
+        await this.authRepository.signOut(userId);
     }
 };
 __decorate([
