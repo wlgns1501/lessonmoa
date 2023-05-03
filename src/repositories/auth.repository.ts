@@ -8,4 +8,10 @@ export class AuthRepository extends BaseRepository<User> {
   async signUp(signUpDto: SignUpDto) {
     return this.create({ ...signUpDto }).save();
   }
+
+  async signOut(userId: number) {
+    return this.delete({
+      id: userId,
+    });
+  }
 }

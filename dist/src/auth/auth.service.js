@@ -17,9 +17,17 @@ const signup_dto_1 = require("./dtos/signup.dto");
 const typeorm_transactional_cls_hooked_1 = require("typeorm-transactional-cls-hooked");
 const http_error_1 = require("../constants/http-error");
 const postgres_error_1 = require("../constants/postgres-error");
+const jwt = require("jsonwebtoken");
+const user_entity_1 = require("../entities/user.entity");
 let AuthService = class AuthService {
     constructor(connection) {
         this.connection = connection;
+    }
+    getAccessToken(user) {
+        return jwt.sign({ email: user.email, isInstructor: user.isInstructor }, process.env.JWT_SECRET_KEY, { expiresIn: '8h' });
+    }
+    getRefreshToken(user) {
+        return jwt.sign({ email: user.email, isInstructor: user.isInstructor }, process.env.JWT_SECRET_KEY, { expiresIn: '2d' });
     }
     async signUp(signUpDto) {
         try {
@@ -48,26 +56,35 @@ let AuthService = class AuthService {
         }
     }
     async signIn(signInDto) {
+        this.authRepository = this.connection.getCustomRepository(auth_repository_1.AuthRepository);
+        const { email, password } = signInDto;
+        const user = await this.authRepository.findOne({
+            email,
+        });
+        if (!user) {
+            throw new common_1.HttpException({
+                message: http_error_1.HTTP_ERROR.NOT_FOUND,
+                detail: '해당 유저는 존재하지 않습니다.',
+            }, common_1.HttpStatus.BAD_REQUEST);
+        }
+        const isValidated = await user.validatedPassword(password);
+        if (!isValidated)
+            throw new common_1.HttpException({
+                message: http_error_1.HTTP_ERROR.BAD_REQUEST,
+                detail: '올바른 비밀번호가 아닙니다.',
+            }, common_1.HttpStatus.BAD_REQUEST);
+        const accessToken = this.getAccessToken(user);
+        const refreshToken = this.getRefreshToken(user);
+        return { accessToken, refreshToken };
+    }
+    async signOut(user) {
         try {
             this.authRepository = this.connection.getCustomRepository(auth_repository_1.AuthRepository);
-            const { email, password } = signInDto;
-            const user = await this.authRepository.findOne({
-                email,
-            });
-            if (!user)
-                throw new common_1.HttpException({
-                    message: http_error_1.HTTP_ERROR.NOT_FOUND,
-                    detail: '해당 유저는 존재하지 않습니다.',
-                }, common_1.HttpStatus.BAD_REQUEST);
-            const isValidated = await user.validatedPassword(password);
-            if (!isValidated)
-                throw new common_1.HttpException({
-                    message: http_error_1.HTTP_ERROR.BAD_REQUEST,
-                    detail: '올바른 비밀번호가 아닙니다.',
-                }, common_1.HttpStatus.BAD_REQUEST);
+            const userId = user.id;
+            await this.authRepository.signOut(userId);
         }
         catch (error) {
-            console.error();
+            console.log(error);
         }
     }
 };
@@ -77,6 +94,12 @@ __decorate([
     __metadata("design:paramtypes", [signup_dto_1.SignUpDto]),
     __metadata("design:returntype", Promise)
 ], AuthService.prototype, "signUp", null);
+__decorate([
+    (0, typeorm_transactional_cls_hooked_1.Transactional)(),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [user_entity_1.User]),
+    __metadata("design:returntype", Promise)
+], AuthService.prototype, "signOut", null);
 AuthService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [typeorm_1.Connection])

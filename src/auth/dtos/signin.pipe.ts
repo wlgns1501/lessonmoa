@@ -18,7 +18,6 @@ export class SignInPipe implements PipeTransform<SignInDto> {
       email: SCHEMA.REQUIRED_STRING_WITH_REGEX('이메일', EMAIL_REGEX),
       password: SCHEMA.REQUIRED_STRING('비밀번호'),
     });
-    console.log(value);
 
     const { error, value: validatedValue } = validationSchema.validate(value);
 

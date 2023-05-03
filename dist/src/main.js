@@ -4,10 +4,12 @@ const core_1 = require("@nestjs/core");
 const app_module_1 = require("./app.module");
 const swagger_1 = require("@nestjs/swagger");
 const typeorm_transactional_cls_hooked_1 = require("typeorm-transactional-cls-hooked");
+const all_exceptionfilter_1 = require("./functions/all-exceptionfilter");
 async function bootstrap() {
     (0, typeorm_transactional_cls_hooked_1.initializeTransactionalContext)();
     (0, typeorm_transactional_cls_hooked_1.patchTypeORMRepositoryWithBaseRepository)();
     const app = await core_1.NestFactory.create(app_module_1.AppModule);
+    app.useGlobalFilters(new all_exceptionfilter_1.CustomExceptionFilter());
     const config = new swagger_1.DocumentBuilder()
         .setTitle('LessonMoa')
         .setDescription('LessonMoa API description')

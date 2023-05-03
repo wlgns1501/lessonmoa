@@ -14,6 +14,11 @@ let AuthRepository = class AuthRepository extends typeorm_transactional_cls_hook
     async signUp(signUpDto) {
         return this.create(Object.assign({}, signUpDto)).save();
     }
+    async signOut(userId) {
+        return this.delete({
+            id: userId,
+        });
+    }
 };
 AuthRepository = __decorate([
     (0, typeorm_1.EntityRepository)(user_entity_1.User)

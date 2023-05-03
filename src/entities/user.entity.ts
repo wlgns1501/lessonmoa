@@ -9,6 +9,7 @@ import {
   Unique,
 } from 'typeorm';
 import * as bcrypt from 'bcrypt';
+import { Exclude } from 'class-transformer';
 
 @Entity({ name: 'user' })
 @Unique(['email'])
@@ -27,6 +28,7 @@ export class User extends BaseEntity {
   })
   email: string;
 
+  @Exclude()
   @Column({ name: 'password', comment: '비밀번호', nullable: true })
   @ApiProperty({
     description: '비밀번호',

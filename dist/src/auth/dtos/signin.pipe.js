@@ -18,7 +18,6 @@ let SignInPipe = class SignInPipe {
             email: schema_1.SCHEMA.REQUIRED_STRING_WITH_REGEX('이메일', regex_1.EMAIL_REGEX),
             password: schema_1.SCHEMA.REQUIRED_STRING('비밀번호'),
         });
-        console.log(value);
         const { error, value: validatedValue } = validationSchema.validate(value);
         if (error) {
             throw new common_1.HttpException({

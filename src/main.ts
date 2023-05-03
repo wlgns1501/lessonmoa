@@ -9,11 +9,13 @@ import {
   initializeTransactionalContext,
   patchTypeORMRepositoryWithBaseRepository,
 } from 'typeorm-transactional-cls-hooked';
+import { CustomExceptionFilter } from './functions/all-exceptionfilter';
 
 async function bootstrap() {
   initializeTransactionalContext();
   patchTypeORMRepositoryWithBaseRepository();
   const app = await NestFactory.create(AppModule);
+  app.useGlobalFilters(new CustomExceptionFilter());
 
   const config = new DocumentBuilder()
     .setTitle('LessonMoa')

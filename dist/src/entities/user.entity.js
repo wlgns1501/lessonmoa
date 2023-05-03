@@ -13,6 +13,7 @@ exports.UserInfo = exports.User = void 0;
 const swagger_1 = require("@nestjs/swagger");
 const typeorm_1 = require("typeorm");
 const bcrypt = require("bcrypt");
+const class_transformer_1 = require("class-transformer");
 let User = class User extends typeorm_1.BaseEntity {
     async hashedPassword() {
         this.password = await bcrypt.hash(this.password, 9);
@@ -38,6 +39,7 @@ __decorate([
     __metadata("design:type", String)
 ], User.prototype, "email", void 0);
 __decorate([
+    (0, class_transformer_1.Exclude)(),
     (0, typeorm_1.Column)({ name: 'password', comment: '비밀번호', nullable: true }),
     (0, swagger_1.ApiProperty)({
         description: '비밀번호',
