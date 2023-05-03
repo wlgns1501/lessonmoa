@@ -4,6 +4,9 @@ import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
+import { LisenceModule } from './lisence/lisence.module';
+import { LicenseService } from './license/license.service';
+import { LicenseController } from './license/license.controller';
 // import typeOrmConfig from '../ormconfig';
 
 @Module({
@@ -28,8 +31,9 @@ import { ConfigModule } from '@nestjs/config';
       },
     }),
     AuthModule,
+    LisenceModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [AppController, LicenseController],
+  providers: [AppService, LicenseService],
 })
 export class AppModule {}
