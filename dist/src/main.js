@@ -8,7 +8,6 @@ async function bootstrap() {
     (0, typeorm_transactional_cls_hooked_1.initializeTransactionalContext)();
     (0, typeorm_transactional_cls_hooked_1.patchTypeORMRepositoryWithBaseRepository)();
     const app = await core_1.NestFactory.create(app_module_1.AppModule);
-    console.log(process.env.DB_HOST);
     const config = new swagger_1.DocumentBuilder()
         .setTitle('LessonMoa')
         .setDescription('LessonMoa API description')

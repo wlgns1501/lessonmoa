@@ -15,6 +15,8 @@ const auth_repository_1 = require("../repositories/auth.repository");
 const typeorm_1 = require("typeorm");
 const signup_dto_1 = require("./dtos/signup.dto");
 const typeorm_transactional_cls_hooked_1 = require("typeorm-transactional-cls-hooked");
+const http_error_1 = require("../constants/http-error");
+const postgres_error_1 = require("../constants/postgres-error");
 let AuthService = class AuthService {
     constructor(connection) {
         this.connection = connection;
@@ -26,7 +28,45 @@ let AuthService = class AuthService {
             return { success: true };
         }
         catch (error) {
-            console.log(error);
+            console.log(error.code);
+            switch (error.code) {
+                case postgres_error_1.POSTGRES_ERROR_CODE.DUPLICATED_KEY_ERROR:
+                    if (error.detail.includes('email')) {
+                        throw new common_1.HttpException({
+                            message: http_error_1.HTTP_ERROR.DUPLICATED_KEY_ERROR,
+                            detail: '중복된 이메일입니다.',
+                        }, common_1.HttpStatus.BAD_REQUEST);
+                    }
+                    else if (error.detail.includes('nickname')) {
+                        throw new common_1.HttpException({
+                            message: http_error_1.HTTP_ERROR.DUPLICATED_KEY_ERROR,
+                            detail: '중복된 닉네임입니다.',
+                        }, common_1.HttpStatus.BAD_REQUEST);
+                    }
+            }
+            console.error();
+        }
+    }
+    async signIn(signInDto) {
+        try {
+            this.authRepository = this.connection.getCustomRepository(auth_repository_1.AuthRepository);
+            const { email, password } = signInDto;
+            const user = await this.authRepository.findOne({
+                email,
+            });
+            if (!user)
+                throw new common_1.HttpException({
+                    message: http_error_1.HTTP_ERROR.NOT_FOUND,
+                    detail: '해당 유저는 존재하지 않습니다.',
+                }, common_1.HttpStatus.BAD_REQUEST);
+            const isValidated = await user.validatedPassword(password);
+            if (!isValidated)
+                throw new common_1.HttpException({
+                    message: http_error_1.HTTP_ERROR.BAD_REQUEST,
+                    detail: '올바른 비밀번호가 아닙니다.',
+                }, common_1.HttpStatus.BAD_REQUEST);
+        }
+        catch (error) {
             console.error();
         }
     }

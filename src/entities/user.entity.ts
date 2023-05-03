@@ -43,7 +43,7 @@ export class User extends BaseEntity {
     required: true,
     example: 'jihun',
   })
-  nickname: true;
+  nickname: string;
 
   @Column({ name: 'isInstructor', comment: '강사 여부', default: false })
   @ApiProperty({ description: '강사 여부', default: false })

@@ -15,8 +15,6 @@ async function bootstrap() {
   patchTypeORMRepositoryWithBaseRepository();
   const app = await NestFactory.create(AppModule);
 
-  console.log(process.env.DB_HOST);
-
   const config = new DocumentBuilder()
     .setTitle('LessonMoa')
     .setDescription('LessonMoa API description')

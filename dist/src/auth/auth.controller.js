@@ -18,12 +18,17 @@ const swagger_1 = require("@nestjs/swagger");
 const auth_service_1 = require("./auth.service");
 const signup_dto_1 = require("./dtos/signup.dto");
 const signup_pipe_1 = require("./dtos/signup.pipe");
+const signin_pipe_1 = require("./dtos/signin.pipe");
+const signin_dto_1 = require("./dtos/signin.dto");
 let AuthController = class AuthController {
     constructor(service) {
         this.service = service;
     }
     signUp(signUpDto) {
         return this.service.signUp(signUpDto);
+    }
+    async signIn(signInDto, response) {
+        return this.service.signIn(signInDto);
     }
 };
 __decorate([
@@ -36,6 +41,16 @@ __decorate([
     __metadata("design:paramtypes", [signup_dto_1.SignUpDto]),
     __metadata("design:returntype", void 0)
 ], AuthController.prototype, "signUp", null);
+__decorate([
+    (0, common_1.Post)('/signin'),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    (0, swagger_1.ApiOperation)({ summary: '로그인' }),
+    __param(0, (0, common_1.Body)(new signin_pipe_1.SignInPipe())),
+    __param(1, (0, common_1.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [signin_dto_1.SignInDto, Object]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "signIn", null);
 AuthController = __decorate([
     (0, swagger_1.ApiTags)('Auth'),
     (0, common_1.Controller)('auth'),

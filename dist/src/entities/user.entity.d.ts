@@ -3,7 +3,7 @@ export declare class User extends BaseEntity {
     id: number;
     email: string;
     password: string;
-    nickname: true;
+    nickname: string;
     isInstructor: boolean;
     createdAt: string;
     hashedPassword(): Promise<void>;

@@ -1,9 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { AuthRepository } from 'src/repositories/auth.repository';
-import { Connection, Transaction } from 'typeorm';
+import { Connection } from 'typeorm';
 import { SignUpDto } from './dtos/signup.dto';
-import { catchError } from 'rxjs';
 import { Transactional } from 'typeorm-transactional-cls-hooked';
+import { SignInDto } from './dtos/signin.dto';
+import { HTTP_ERROR } from 'src/constants/http-error';
+import { POSTGRES_ERROR_CODE } from 'src/constants/postgres-error';
 
 @Injectable()
 export class AuthService {
@@ -18,8 +20,61 @@ export class AuthService {
 
       return { success: true };
     } catch (error) {
-      console.log(error);
+      console.log(error.code);
+      switch (error.code) {
+        case POSTGRES_ERROR_CODE.DUPLICATED_KEY_ERROR:
+          if (error.detail.includes('email')) {
+            throw new HttpException(
+              {
+                message: HTTP_ERROR.DUPLICATED_KEY_ERROR,
+                detail: '중복된 이메일입니다.',
+              },
+              HttpStatus.BAD_REQUEST,
+            );
+          } else if (error.detail.includes('nickname')) {
+            throw new HttpException(
+              {
+                message: HTTP_ERROR.DUPLICATED_KEY_ERROR,
+                detail: '중복된 닉네임입니다.',
+              },
+              HttpStatus.BAD_REQUEST,
+            );
+          }
+      }
 
+      console.error();
+    }
+  }
+
+  async signIn(signInDto: SignInDto) {
+    try {
+      this.authRepository = this.connection.getCustomRepository(AuthRepository);
+      const { email, password } = signInDto;
+
+      const user = await this.authRepository.findOne({
+        email,
+      });
+
+      if (!user)
+        throw new HttpException(
+          {
+            message: HTTP_ERROR.NOT_FOUND,
+            detail: '해당 유저는 존재하지 않습니다.',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+
+      const isValidated = await user.validatedPassword(password);
+
+      if (!isValidated)
+        throw new HttpException(
+          {
+            message: HTTP_ERROR.BAD_REQUEST,
+            detail: '올바른 비밀번호가 아닙니다.',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+    } catch (error) {
       console.error();
     }
   }

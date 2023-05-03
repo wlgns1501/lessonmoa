@@ -55,7 +55,7 @@ __decorate([
         required: true,
         example: 'jihun',
     }),
-    __metadata("design:type", Boolean)
+    __metadata("design:type", String)
 ], User.prototype, "nickname", void 0);
 __decorate([
     (0, typeorm_1.Column)({ name: 'isInstructor', comment: '강사 여부', default: false }),
