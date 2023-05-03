@@ -14,6 +14,7 @@ const swagger_1 = require("@nestjs/swagger");
 const typeorm_1 = require("typeorm");
 const bcrypt = require("bcrypt");
 const class_transformer_1 = require("class-transformer");
+const lecense_entity_1 = require("./lecense.entity");
 let User = class User extends typeorm_1.BaseEntity {
     async hashedPassword() {
         this.password = await bcrypt.hash(this.password, 9);
@@ -69,6 +70,10 @@ __decorate([
     (0, swagger_1.ApiProperty)({ description: '생성 시간' }),
     __metadata("design:type", String)
 ], User.prototype, "createdAt", void 0);
+__decorate([
+    (0, typeorm_1.OneToMany)(() => lecense_entity_1.License, (license) => license.user),
+    __metadata("design:type", Array)
+], User.prototype, "licenses", void 0);
 __decorate([
     (0, typeorm_1.BeforeInsert)(),
     __metadata("design:type", Function),

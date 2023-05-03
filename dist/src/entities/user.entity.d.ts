@@ -1,4 +1,5 @@
 import { BaseEntity } from 'typeorm';
+import { License } from './lecense.entity';
 export declare class User extends BaseEntity {
     id: number;
     email: string;
@@ -6,6 +7,7 @@ export declare class User extends BaseEntity {
     nickname: string;
     isInstructor: boolean;
     createdAt: string;
+    licenses: License[];
     hashedPassword(): Promise<void>;
     validatedPassword(password: string): Promise<boolean>;
 }

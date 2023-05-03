@@ -5,11 +5,13 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
   Unique,
 } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { Exclude } from 'class-transformer';
+import { License } from './lecense.entity';
 
 @Entity({ name: 'user' })
 @Unique(['email'])
@@ -54,6 +56,9 @@ export class User extends BaseEntity {
   @CreateDateColumn({ name: 'createdAt', comment: '생성시간' })
   @ApiProperty({ description: '생성 시간' })
   createdAt: string;
+
+  @OneToMany(() => License, (license) => license.user)
+  licenses: License[];
 
   @BeforeInsert()
   async hashedPassword() {
