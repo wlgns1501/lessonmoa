@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { BusinessException, ErrorDomain } from './business-exception-filter';
+import { log } from 'console';
 
 export interface ApiError {
   id: string;
@@ -23,6 +24,7 @@ export class CustomExceptionFilter implements ExceptionFilter {
   catch(exception: Error, host: ArgumentsHost) {
     let body: ApiError;
     let status: HttpStatus;
+    console.log(exception);
 
     if (exception instanceof BusinessException) {
       body = {

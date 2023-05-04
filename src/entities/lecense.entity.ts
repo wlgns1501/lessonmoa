@@ -28,6 +28,10 @@ export class License extends BaseEntity {
   @ApiProperty({ description: '자격증 이미지', required: true })
   imageUrl: string;
 
+  @Column({ name: 'status', comment: '인증 상태', default: 'PENDING' })
+  @ApiProperty({ description: '인증 상태', default: 'PENDING' })
+  status: string;
+
   @CreateDateColumn({ name: 'createdAt' })
   createdAt: string;
 

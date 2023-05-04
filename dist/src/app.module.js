@@ -19,7 +19,7 @@ let AppModule = class AppModule {
 AppModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            config_1.ConfigModule.forRoot({ envFilePath: 'config/.env' }),
+            config_1.ConfigModule.forRoot({ isGlobal: true, envFilePath: 'config/.env' }),
             typeorm_1.TypeOrmModule.forRoot({
                 type: 'postgres',
                 host: process.env.DB_HOST,
@@ -34,7 +34,7 @@ AppModule = __decorate([
                 migrations: ['dist/migration/**/*{.js,.ts}'],
                 subscribers: ['dist/subscribers/**/*{.js,.ts}'],
                 cli: {
-                    entitiesDir: 'src/entities',
+                    entitiesDir: 'entities',
                     migrationsDir: 'migration',
                 },
             }),

@@ -8,7 +8,7 @@ import { LicenseModule } from './license/license.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ envFilePath: 'config/.env' }),
+    ConfigModule.forRoot({ isGlobal: true, envFilePath: 'config/.env' }),
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: process.env.DB_HOST,
@@ -23,7 +23,7 @@ import { LicenseModule } from './license/license.module';
       migrations: ['dist/migration/**/*{.js,.ts}'],
       subscribers: ['dist/subscribers/**/*{.js,.ts}'],
       cli: {
-        entitiesDir: 'src/entities',
+        entitiesDir: 'entities',
         migrationsDir: 'migration',
       },
     }),
