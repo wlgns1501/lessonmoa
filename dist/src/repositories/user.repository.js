@@ -6,14 +6,17 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AuthRepository = void 0;
+exports.UserRepository = void 0;
 const user_entity_1 = require("../entities/user.entity");
 const typeorm_1 = require("typeorm");
 const typeorm_transactional_cls_hooked_1 = require("typeorm-transactional-cls-hooked");
-let AuthRepository = class AuthRepository extends typeorm_transactional_cls_hooked_1.BaseRepository {
+let UserRepository = class UserRepository extends typeorm_transactional_cls_hooked_1.BaseRepository {
+    async updateUserIsInstructor(userId) {
+        return this.update({ id: userId }, { isInstructor: false });
+    }
 };
-AuthRepository = __decorate([
+UserRepository = __decorate([
     (0, typeorm_1.EntityRepository)(user_entity_1.User)
-], AuthRepository);
-exports.AuthRepository = AuthRepository;
+], UserRepository);
+exports.UserRepository = UserRepository;
 //# sourceMappingURL=user.repository.js.map

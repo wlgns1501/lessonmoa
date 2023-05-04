@@ -1,10 +1,10 @@
 import { License } from 'src/entities/lecense.entity';
 import { User } from 'src/entities/user.entity';
 import { GetLicensesDto } from 'src/license/dtos/getLicensesDto';
-import { createLicenseDto } from 'src/license/dtos/createLicense.dto';
 import { EntityRepository } from 'typeorm';
 import { BaseRepository } from 'typeorm-transactional-cls-hooked';
 import { UpdateLicenseDto } from 'src/license/dtos/updateLicense.dto';
+import { CreateLicenseDto } from 'src/license/dtos/createLicense.dto';
 
 @EntityRepository(License)
 export class LicenseRepository extends BaseRepository<License> {
@@ -23,7 +23,7 @@ export class LicenseRepository extends BaseRepository<License> {
     });
   }
 
-  async createLicense(user: User, createLicenseDto: createLicenseDto) {
+  async createLicense(user: User, createLicenseDto: CreateLicenseDto) {
     const { name, imageUrl } = createLicenseDto;
 
     this.create({
@@ -48,5 +48,9 @@ export class LicenseRepository extends BaseRepository<License> {
 
   async deleteLicense(licenseId: number, user: User) {
     return this.delete({ id: licenseId, user });
+  }
+
+  async getActiveLicenses(user: User) {
+    return this.find({ user, status: 'ACTIVE' });
   }
 }

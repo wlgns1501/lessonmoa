@@ -5,12 +5,14 @@ import { LicenseRepository } from 'src/repositories/license.repository';
 import { Transactional } from 'typeorm-transactional-cls-hooked';
 import { GetLicensesDto } from './dtos/getLicensesDto';
 import { HTTP_ERROR } from 'src/constants/http-error';
-import { createLicenseDto } from './dtos/createLicense.dto';
+import { CreateLicenseDto } from './dtos/createLicense.dto';
 import { UpdateLicenseDto } from './dtos/updateLicense.dto';
+import { UserRepository } from 'src/repositories/user.repository';
 
 @Injectable()
 export class LicenseService {
   private licenseRepository: LicenseRepository;
+  private userRepository: UserRepository;
   constructor(private readonly connection: Connection) {}
 
   async getLicensesList(user: User, getLicensesDto: GetLicensesDto) {
@@ -26,7 +28,7 @@ export class LicenseService {
   }
 
   @Transactional()
-  async createLicense(user: User, createLicenseDto: createLicenseDto) {
+  async createLicense(user: User, createLicenseDto: CreateLicenseDto) {
     this.licenseRepository =
       this.connection.getCustomRepository(LicenseRepository);
 
@@ -78,8 +80,16 @@ export class LicenseService {
   async deleteLicense(licenseId: number, user: User) {
     this.licenseRepository =
       this.connection.getCustomRepository(LicenseRepository);
+    this.userRepository = this.connection.getCustomRepository(UserRepository);
 
     await this.licenseRepository.deleteLicense(licenseId, user);
+
+    const licenses = await this.licenseRepository.getActiveLicenses(user);
+
+    if (licenses.length === 0) {
+      const userId = user.id;
+      await this.userRepository.updateUserIsInstructor(userId);
+    }
 
     return { success: true };
   }

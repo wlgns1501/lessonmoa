@@ -14,7 +14,7 @@ import {
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { LicenseService } from './license.service';
 import { AuthGuard } from 'src/guards/auth.guard';
-import { createLicenseDto } from './dtos/createLicense.dto';
+import { CreateLicenseDto } from './dtos/createLicense.dto';
 import { createLicensePipe } from './dtos/createLicense.pipe';
 import { getLicensesPipe } from './dtos/getLicenses.pipe';
 import { GetLicensesDto } from './dtos/getLicensesDto';
@@ -43,7 +43,7 @@ export class LicenseController {
   @UseGuards(AuthGuard)
   async createLicense(
     @Req() req: any,
-    @Body(new createLicensePipe()) createLicenseDto: createLicenseDto,
+    @Body(new createLicensePipe()) createLicenseDto: CreateLicenseDto,
   ) {
     return this.service.createLicense(req.user, createLicenseDto);
   }

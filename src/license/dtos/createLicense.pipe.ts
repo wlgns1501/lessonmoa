@@ -4,13 +4,13 @@ import {
   HttpStatus,
   PipeTransform,
 } from '@nestjs/common';
-import { createLicenseDto } from './createLicense.dto';
+import { CreateLicenseDto } from './createLicense.dto';
 import * as Joi from 'joi';
 import { SCHEMA } from 'src/constants/schema';
 import { HTTP_ERROR } from 'src/constants/http-error';
 
-export class createLicensePipe implements PipeTransform<createLicenseDto> {
-  transform(value: createLicenseDto) {
+export class createLicensePipe implements PipeTransform<CreateLicenseDto> {
+  transform(value: CreateLicenseDto) {
     const validationSchema = Joi.object({
       name: SCHEMA.REQUIRED_STRING('자격증 이름'),
       imageUrl: SCHEMA.REQUIRED_STRING('이미지 Url'),
