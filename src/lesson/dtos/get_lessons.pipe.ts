@@ -2,19 +2,21 @@ import {
   ArgumentMetadata,
   HttpException,
   HttpStatus,
+  Injectable,
   PipeTransform,
 } from '@nestjs/common';
-import { CreateLicenseDto } from './createLicense.dto';
+import { GetLessonsDto } from './get_lessons.dto';
 import * as Joi from 'joi';
 import { SCHEMA } from 'src/constants/schema';
 import { HTTP_ERROR } from 'src/constants/http-error';
 
-export class createLicensePipe implements PipeTransform<CreateLicenseDto> {
-  transform(value: CreateLicenseDto) {
+@Injectable()
+export class GetLessonsPipe implements PipeTransform<GetLessonsDto> {
+  transform(value: GetLessonsDto) {
     const validationSchema = Joi.object({
-      name: SCHEMA.REQUIRED_STRING('자격증 이름'),
-      imageUrl: SCHEMA.REQUIRED_STRING('이미지 Url'),
-      categoryId: SCHEMA.REQUIRED_NUMBER('카테고리 Id'),
+      page: SCHEMA.PAGE(),
+      pageSize: SCHEMA.PAGE_SIZE(),
+      subCategoryId: SCHEMA.OPTIONAL_NUMBER('서브 카테고리 Id'),
     });
 
     const { error, value: validatedValue } = validationSchema.validate(value);

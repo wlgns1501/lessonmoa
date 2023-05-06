@@ -6,11 +6,15 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToOne,
   PrimaryGeneratedColumn,
+  Unique,
 } from 'typeorm';
 import { User } from './user.entity';
+import { Category } from './category.entity';
 
 @Entity({ name: 'license' })
+@Unique(['imageUrl', 'category'])
 export class License extends BaseEntity {
   @PrimaryGeneratedColumn({ name: 'id', comment: 'PK' })
   @ApiProperty({ description: 'id' })
@@ -38,6 +42,10 @@ export class License extends BaseEntity {
   @ManyToOne(() => User, (user) => user.licenses)
   @JoinColumn({ name: 'userId' })
   user: User;
+
+  @OneToOne(() => Category)
+  @JoinColumn({ name: 'categoryId' })
+  category: Category;
 }
 
 export class LicenseInfo extends PickType(License, ['imageUrl', 'name']) {}

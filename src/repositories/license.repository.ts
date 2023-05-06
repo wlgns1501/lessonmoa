@@ -1,36 +1,36 @@
-import { License } from 'src/entities/lecense.entity';
+import { CreateLicenseDto } from 'src/license/dtos/createLicense.dto';
+import { License } from 'src/entities/license.entity';
 import { User } from 'src/entities/user.entity';
 import { GetLicensesDto } from 'src/license/dtos/getLicensesDto';
 import { EntityRepository } from 'typeorm';
 import { BaseRepository } from 'typeorm-transactional-cls-hooked';
 import { UpdateLicenseDto } from 'src/license/dtos/updateLicense.dto';
-import { CreateLicenseDto } from 'src/license/dtos/createLicense.dto';
+import { Category } from 'src/entities/category.entity';
 
 @EntityRepository(License)
 export class LicenseRepository extends BaseRepository<License> {
   async getLicensesList(user: User, getLicensesDto: GetLicensesDto) {
     const { page, pageSize } = getLicensesDto;
 
-    return await this.find({
-      where: {
-        user,
-      },
-      order: {
-        createdAt: 'DESC',
-      },
-      skip: (page - 1) * 10,
-      take: pageSize,
-    });
+    return await this.createQueryBuilder('license')
+      .leftJoinAndSelect('license.category', 'category')
+      .orderBy('license.createdAt', 'DESC')
+      .getMany();
   }
 
-  async createLicense(user: User, createLicenseDto: CreateLicenseDto) {
+  async createLicense(
+    user: User,
+    createLicenseDto: CreateLicenseDto,
+    category: Category,
+  ) {
     const { name, imageUrl } = createLicenseDto;
 
-    this.create({
-      name,
-      imageUrl,
-      user,
-    }).save();
+    return await this.createQueryBuilder()
+      .insert()
+      .into(License)
+      .values({ user, name, imageUrl, category })
+      .returning('*')
+      .execute();
   }
 
   async getLicense(licenseId: number, user: User) {

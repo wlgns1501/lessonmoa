@@ -10,8 +10,9 @@ import {
   Unique,
 } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { Exclude } from 'class-transformer';
-import { License } from './lecense.entity';
+import { Exclude, instanceToPlain } from 'class-transformer';
+import { License } from './license.entity';
+import { Lesson } from './lesson.entity';
 
 @Entity({ name: 'user' })
 @Unique(['email'])
@@ -53,12 +54,19 @@ export class User extends BaseEntity {
   @ApiProperty({ description: '강사 여부', default: false })
   isInstructor: boolean;
 
+  @Column({ name: 'isAdmin', comment: 'admin 여부', default: false })
+  @ApiProperty({ description: 'admin 여부', default: false })
+  isAdmin: boolean;
+
   @CreateDateColumn({ name: 'createdAt', comment: '생성시간' })
   @ApiProperty({ description: '생성 시간' })
   createdAt: string;
 
   @OneToMany(() => License, (license) => license.user)
   licenses: License[];
+
+  @OneToMany(() => Lesson, (lesson) => lesson.user)
+  lessons: Lesson[];
 
   @BeforeInsert()
   async hashedPassword() {
@@ -69,6 +77,10 @@ export class User extends BaseEntity {
     const hash = await bcrypt.compare(password, this.password);
 
     return hash;
+  }
+
+  toJSON() {
+    return instanceToPlain(this);
   }
 }
 

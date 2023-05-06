@@ -14,7 +14,8 @@ const swagger_1 = require("@nestjs/swagger");
 const typeorm_1 = require("typeorm");
 const bcrypt = require("bcrypt");
 const class_transformer_1 = require("class-transformer");
-const lecense_entity_1 = require("./lecense.entity");
+const license_entity_1 = require("./license.entity");
+const lesson_entity_1 = require("./lesson.entity");
 let User = class User extends typeorm_1.BaseEntity {
     async hashedPassword() {
         this.password = await bcrypt.hash(this.password, 9);
@@ -22,6 +23,9 @@ let User = class User extends typeorm_1.BaseEntity {
     async validatedPassword(password) {
         const hash = await bcrypt.compare(password, this.password);
         return hash;
+    }
+    toJSON() {
+        return (0, class_transformer_1.instanceToPlain)(this);
     }
 };
 __decorate([
@@ -66,14 +70,23 @@ __decorate([
     __metadata("design:type", Boolean)
 ], User.prototype, "isInstructor", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ name: 'isAdmin', comment: 'admin 여부', default: false }),
+    (0, swagger_1.ApiProperty)({ description: 'admin 여부', default: false }),
+    __metadata("design:type", Boolean)
+], User.prototype, "isAdmin", void 0);
+__decorate([
     (0, typeorm_1.CreateDateColumn)({ name: 'createdAt', comment: '생성시간' }),
     (0, swagger_1.ApiProperty)({ description: '생성 시간' }),
     __metadata("design:type", String)
 ], User.prototype, "createdAt", void 0);
 __decorate([
-    (0, typeorm_1.OneToMany)(() => lecense_entity_1.License, (license) => license.user),
+    (0, typeorm_1.OneToMany)(() => license_entity_1.License, (license) => license.user),
     __metadata("design:type", Array)
 ], User.prototype, "licenses", void 0);
+__decorate([
+    (0, typeorm_1.OneToMany)(() => lesson_entity_1.Lesson, (lesson) => lesson.user),
+    __metadata("design:type", Array)
+], User.prototype, "lessons", void 0);
 __decorate([
     (0, typeorm_1.BeforeInsert)(),
     __metadata("design:type", Function),

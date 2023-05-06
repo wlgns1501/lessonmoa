@@ -14,6 +14,9 @@ const typeorm_1 = require("@nestjs/typeorm");
 const auth_module_1 = require("./auth/auth.module");
 const config_1 = require("@nestjs/config");
 const license_module_1 = require("./license/license.module");
+const category_module_1 = require("./category/category.module");
+const sub_category_module_1 = require("./sub_category/sub_category.module");
+const lesson_module_1 = require("./lesson/lesson.module");
 let AppModule = class AppModule {
 };
 AppModule = __decorate([
@@ -40,6 +43,9 @@ AppModule = __decorate([
             }),
             auth_module_1.AuthModule,
             license_module_1.LicenseModule,
+            category_module_1.CategoryModule,
+            sub_category_module_1.SubCategoryModule,
+            lesson_module_1.LessonModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],

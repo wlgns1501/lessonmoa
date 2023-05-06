@@ -8,11 +8,14 @@ import { HTTP_ERROR } from 'src/constants/http-error';
 import { CreateLicenseDto } from './dtos/createLicense.dto';
 import { UpdateLicenseDto } from './dtos/updateLicense.dto';
 import { UserRepository } from 'src/repositories/user.repository';
+import { CategoryRepository } from 'src/repositories/category.repository';
+import { POSTGRES_ERROR_CODE } from 'src/constants/postgres-error';
 
 @Injectable()
 export class LicenseService {
   private licenseRepository: LicenseRepository;
   private userRepository: UserRepository;
+  private categoryRepository: CategoryRepository;
   constructor(private readonly connection: Connection) {}
 
   async getLicensesList(user: User, getLicensesDto: GetLicensesDto) {
@@ -32,11 +35,35 @@ export class LicenseService {
     this.licenseRepository =
       this.connection.getCustomRepository(LicenseRepository);
 
-    const license = await this.licenseRepository.createLicense(
-      user,
-      createLicenseDto,
-    );
-    return license;
+    this.categoryRepository =
+      this.connection.getCustomRepository(CategoryRepository);
+
+    const { categoryId } = createLicenseDto;
+    const category = await this.categoryRepository.getCategory(categoryId);
+
+    try {
+      const { raw } = await this.licenseRepository.createLicense(
+        user,
+        createLicenseDto,
+        category,
+      );
+
+      const [license] = raw;
+      return license;
+    } catch (error) {
+      switch (error.code) {
+        case POSTGRES_ERROR_CODE.DUPLICATED_KEY_ERROR:
+          if (error.detail.includes('name')) {
+            throw new HttpException(
+              {
+                message: HTTP_ERROR.DUPLICATED_KEY_ERROR,
+                detail: '중복된 이름입니다.',
+              },
+              HttpStatus.BAD_REQUEST,
+            );
+          }
+      }
+    }
   }
 
   async getLicense(licenseId: number, user: User) {
