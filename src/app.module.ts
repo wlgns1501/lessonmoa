@@ -8,6 +8,7 @@ import { LicenseModule } from './license/license.module';
 import { CategoryModule } from './category/category.module';
 import { SubCategoryModule } from './sub_category/sub_category.module';
 import { LessonModule } from './lesson/lesson.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { LessonModule } from './lesson/lesson.module';
     CategoryModule,
     SubCategoryModule,
     LessonModule,
+    ScheduleModule.forRoot(),
   ],
   controllers: [AppController],
   providers: [AppService],

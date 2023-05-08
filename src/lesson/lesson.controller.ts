@@ -18,6 +18,8 @@ import { GetLessonsDto } from './dtos/get_lessons.dto';
 import { AuthGuard } from 'src/guards/auth.guard';
 import { CreateLessonDto } from './dtos/create_lesson.dto';
 import { CreateLessonPipe } from './dtos/create_lesson.pipe';
+import { UpdateLessonPipe } from './dtos/update_lesson.pipe';
+import { UpdateLessonDto } from './dtos/update_lesson.dto';
 
 @ApiTags('lesson')
 @Controller('lesson')
@@ -49,11 +51,22 @@ export class LessonController {
     return this.service.getLesson(lessonId);
   }
 
-  //   @Patch(':lessonId')
-  //   @ApiOperation({ summary: '레슨 수정' })
-  //   @HttpCode(HttpStatus.OK)
-  //   @UseGuards(AuthGuard)
-  //   updateLesson(@Param('lessonId') lessonId: number) {
-  //     return this.service.updateLesson(lessonId);
-  //   }
+  @Patch(':lessonId')
+  @ApiOperation({ summary: '레슨 수정' })
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard)
+  updateLesson(
+    @Param('lessonId') lessonId: number,
+    @Body(new UpdateLessonPipe()) updateLessonDto: UpdateLessonDto,
+  ) {
+    return this.service.updateLesson(lessonId, updateLessonDto);
+  }
+
+  @Post(':lessonId/apply')
+  @ApiOperation({ summary: '레슨 등록' })
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard)
+  applyLesson(@Param('lessonId') lessonId: number, @Req() req: any) {
+    return this.service.applyLesson(req.user, lessonId);
+  }
 }

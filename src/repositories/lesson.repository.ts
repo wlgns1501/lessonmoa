@@ -3,6 +3,7 @@ import { SubCategory } from 'src/entities/sub_category.entity';
 import { User } from 'src/entities/user.entity';
 import { CreateLessonDto } from 'src/lesson/dtos/create_lesson.dto';
 import { GetLessonsDto } from 'src/lesson/dtos/get_lessons.dto';
+import { UpdateLessonDto } from 'src/lesson/dtos/update_lesson.dto';
 import { EntityRepository } from 'typeorm';
 import { BaseRepository } from 'typeorm-transactional-cls-hooked';
 
@@ -35,7 +36,8 @@ export class LessonRepository extends BaseRepository<Lesson> {
     createLessonDto: CreateLessonDto,
     subCategory: SubCategory,
   ) {
-    const { name, userLimit, startDate, endDate, content } = createLessonDto;
+    const { name, userLimit, level, startDate, endDate, content } =
+      createLessonDto;
 
     return await this.createQueryBuilder('lesson')
       .insert()
@@ -44,6 +46,7 @@ export class LessonRepository extends BaseRepository<Lesson> {
         name,
         content,
         userLimit,
+        level,
         startDate,
         endDate,
         user,
@@ -60,5 +63,38 @@ export class LessonRepository extends BaseRepository<Lesson> {
       .leftJoinAndSelect('sc.category', 'c')
       .where({ id: lessonId })
       .getOne();
+  }
+
+  async updateLesson(
+    lessonId: number,
+    updateLessonDto: UpdateLessonDto,
+    subCategory: SubCategory,
+  ) {
+    const { name, content, userLimit, level, startDate, endDate } =
+      updateLessonDto;
+
+    return await this.createQueryBuilder()
+      .update(Lesson)
+      .set({ name, content, userLimit, level, startDate, endDate, subCategory })
+      .where({ id: lessonId })
+      .returning('*')
+      .execute();
+  }
+
+  async updateParticipantCount(lessonId: number) {
+    return await this.createQueryBuilder('l')
+      .update()
+      .set({ participantCount: () => '"participantCount" + 1' })
+      .where({ id: lessonId })
+      .returning('"participantCount"')
+      .execute();
+  }
+
+  async updateStatusLesson(lessonId: number) {
+    return await this.createQueryBuilder('l')
+      .update()
+      .set({ status: 'CLOSED' })
+      .where({ id: lessonId })
+      .execute();
   }
 }

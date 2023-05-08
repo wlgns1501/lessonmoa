@@ -9,7 +9,8 @@ export class SubCategoryRepository extends BaseRepository<SubCategory> {
   }
 
   async getSubCategory(subCategoryId: number) {
-    return await this.createQueryBuilder('sub_category')
+    return await this.createQueryBuilder('sc')
+      .leftJoinAndSelect('sc.lessons', 'lessons')
       .where({
         id: subCategoryId,
       })

@@ -37,6 +37,22 @@ export class Lesson extends BaseEntity {
   @ApiProperty({ description: '수업 최대 인원', required: true, example: 20 })
   userLimit: number;
 
+  @Column({ name: 'level', comment: '레슨 레벨', nullable: true })
+  @ApiProperty({
+    description: '레슨 레벨',
+    required: true,
+    example: '초보',
+  })
+  level: string;
+
+  @Column({ name: 'status', comment: '레슨 상태', default: 'RELEASE' })
+  @ApiProperty({ description: '레슨 상태', readOnly: true })
+  status: string;
+
+  @Column({ name: 'participantCount', comment: '참가자 수', default: 0 })
+  @ApiProperty({ description: '참가자 수', default: 0 })
+  participantCount: number;
+
   @Column({ name: 'startDate', comment: '수업 시작 시간' })
   @ApiProperty({
     description: '수업 시작 시간',
@@ -69,6 +85,7 @@ export class LessonInfo extends PickType(Lesson, [
   'name',
   'content',
   'userLimit',
+  'level',
   'startDate',
   'endDate',
 ]) {}

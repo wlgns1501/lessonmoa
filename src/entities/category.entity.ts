@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, PickType } from '@nestjs/swagger';
 import {
   BaseEntity,
   Column,
@@ -15,7 +15,7 @@ export class Category extends BaseEntity {
   @ApiProperty({ description: 'id' })
   id: number;
 
-  @Column({ name: 'name', comment: '카테고리 명 ' })
+  @Column({ name: 'name', comment: '카테고리 명 ', unique: true })
   @ApiProperty({ description: 'name', required: true, example: '축구' })
   name: string;
 
@@ -25,3 +25,5 @@ export class Category extends BaseEntity {
   @OneToMany(() => SubCategory, (subCategory) => subCategory.category)
   subCategories: SubCategory[];
 }
+
+export class CategoryInfo extends PickType(Category, ['name']) {}
