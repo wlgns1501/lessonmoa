@@ -12,26 +12,44 @@ import { POSTGRES_ERROR_CODE } from 'src/constants/postgres-error';
 import { UserLessonRepository } from 'src/repositories/user_lesson.repository';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { UserRepository } from 'src/repositories/user.repository';
+import { Lesson } from 'src/entities/lesson.entity';
 
 type APPLY_USER = {
   userId: number;
   lessonId: number;
 };
 
+export const TYPE_LESSON_STATUS = {
+  ACTIVE: 'ACTIVE',
+  CLOSED: 'CLOSED',
+};
+
+export const TYPE_UPDATE_PARTICIPANT = {
+  PLUS: 'PLUS',
+  MINUS: 'MINUS',
+};
+
 @Injectable()
 export class LessonService {
-  private applyQueue: Array<{ userId: number; lessonId: number }> = [];
+  private applyQueue: Array<{ userId: number; lessonId: number }> = [
+    // { userId: 1, lessonId: 2 },
+    // { userId: 2, lessonId: 10 },
+    // { userId: 1, lessonId: 11 },
+    // { userId: 1, lessonId: 12 },
+    // { userId: 1, lessonId: 22 },
+    // { userId: 1, lessonId: 32 },
+    // { userId: 1, lessonId: 42 },
+    // { userId: 1, lessonId: 52 },
+    // { userId: 1, lessonId: 62 },
+    // { userId: 1, lessonId: 72 },
+    // { userId: 1, lessonId: 82 },
+  ];
   private isQueueLocked = false;
   private lessonRepository: LessonRepository;
   private subCategoryRepository: SubCategoryRepository;
   private userLessonRepository: UserLessonRepository;
   private userRepository: UserRepository;
   constructor(private readonly connection: Connection) {}
-
-  @Cron(CronExpression.EVERY_5_SECONDS)
-  unlockQueue() {
-    this.isQueueLocked = false;
-  }
 
   private calculateRetryAfter(): number {
     const now = Date.now();
@@ -44,6 +62,41 @@ export class LessonService {
     const now = Date.now();
     const nextUnlockTime = now + 5000;
     return nextUnlockTime;
+  }
+
+  private async checkUserLimit(lessonId: number) {
+    const lesson = await this.getLesson(lessonId);
+
+    if (lesson.participantCount === lesson.userLimit) {
+      throw new HttpException(
+        {
+          message: HTTP_ERROR.BAD_REQUEST,
+          detail: '해당 레슨은 수강 인원이 꽉 찼습니다.',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    return lesson;
+  }
+
+  private async checkAlreadyApply(user: User, lesson: Lesson) {
+    const checkAlreadyApply = await this.userLessonRepository.getUserId(
+      user,
+      lesson,
+    );
+
+    if (checkAlreadyApply) {
+      throw new HttpException(
+        {
+          message: HTTP_ERROR.BAD_REQUEST,
+          detail: '이미 수강한 상태 입니다.',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    return checkAlreadyApply;
   }
 
   async getLessonsList(getLessonsDto: GetLessonsDto) {
@@ -203,29 +256,9 @@ export class LessonService {
       );
     }
 
-    const lesson = await this.getLesson(lessonId);
+    const lesson = await this.checkUserLimit(lessonId);
 
-    if (lesson.participantCount === lesson.userLimit) {
-      throw new HttpException(
-        {
-          message: HTTP_ERROR.BAD_REQUEST,
-          detail: '해당 레슨은 수강 인원이 꽉 찼습니다.',
-        },
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-
-    const checkAlreadyApply = await this.userLessonRepository.getUserId(user);
-
-    if (checkAlreadyApply) {
-      throw new HttpException(
-        {
-          message: HTTP_ERROR.BAD_REQUEST,
-          detail: '이미 수강한 상태 입니다.',
-        },
-        HttpStatus.BAD_REQUEST,
-      );
-    }
+    await this.checkAlreadyApply(user, lesson);
 
     if (this.applyQueue.length >= 100) this.isQueueLocked = true;
 
@@ -247,13 +280,18 @@ export class LessonService {
 
         const { raw } = await this.lessonRepository.updateParticipantCount(
           lessonId,
+          TYPE_UPDATE_PARTICIPANT.PLUS,
         );
 
         const [checkCount] = raw;
 
         if (checkCount.participantCount === 20) {
-          await this.lessonRepository.updateStatusLesson(lessonId);
+          await this.lessonRepository.updateStatusLesson(
+            lessonId,
+            TYPE_LESSON_STATUS.CLOSED,
+          );
         }
+        console.log(this.applyQueue);
 
         return { success: true };
       } catch (error) {
@@ -270,6 +308,10 @@ export class LessonService {
     } else {
       this.applyQueue.push({ userId: user.id, lessonId });
 
+      if (this.applyQueue.length === 100) {
+        this.isQueueLocked = true;
+      }
+
       throw new HttpException(
         {
           message: HTTP_ERROR.BAD_REQUEST,
@@ -279,4 +321,53 @@ export class LessonService {
       );
     }
   }
+
+  @Transactional()
+  async withdrawalLesson(user: User, lessonId: number) {
+    this.lessonRepository =
+      this.connection.getCustomRepository(LessonRepository);
+    this.userLessonRepository =
+      this.connection.getCustomRepository(UserLessonRepository);
+
+    const lesson = await this.getLesson(lessonId);
+
+    const checkAlreadyApply = await this.userLessonRepository.getUserId(
+      user,
+      lesson,
+    );
+
+    if (!checkAlreadyApply) {
+      throw new HttpException(
+        {
+          message: HTTP_ERROR.BAD_REQUEST,
+          detail: '수강 신청한 내역에 없습니다.',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    await this.userLessonRepository.withdrawalLesson(user, lesson);
+
+    await this.lessonRepository.updateParticipantCount(
+      lessonId,
+      TYPE_UPDATE_PARTICIPANT.MINUS,
+    );
+
+    await this.lessonRepository.updateStatusLesson(
+      lessonId,
+      TYPE_LESSON_STATUS.ACTIVE,
+    );
+
+    return { success: true };
+  }
+
+  // @Cron(CronExpression.EVERY_30_SECONDS)
+  // async applyInQueue() {
+  //   this.lessonRepository =
+  //     this.connection.getCustomRepository(LessonRepository);
+  //   this.userLessonRepository =
+  //     this.connection.getCustomRepository(UserLessonRepository);
+  //   this.userRepository = this.connection.getCustomRepository(UserRepository);
+
+  // }
 }

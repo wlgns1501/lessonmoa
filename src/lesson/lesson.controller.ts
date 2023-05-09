@@ -69,4 +69,12 @@ export class LessonController {
   applyLesson(@Param('lessonId') lessonId: number, @Req() req: any) {
     return this.service.applyLesson(req.user, lessonId);
   }
+
+  @Post(':lessonId/withdrawal')
+  @ApiOperation({ summary: '레슨 등록 취소' })
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard)
+  withdrawalLesson(@Param('lessonId') lessonId: number, @Req() req: any) {
+    return this.service.withdrawalLesson(req.user, lessonId);
+  }
 }

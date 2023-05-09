@@ -17,7 +17,7 @@ let CustomExceptionFilter = CustomExceptionFilter_1 = class CustomExceptionFilte
     catch(exception, host) {
         let body;
         let status;
-        console.log(exception.message);
+        console.log(exception);
         if (exception instanceof business_exception_filter_1.BusinessException) {
             body = {
                 id: exception.id,

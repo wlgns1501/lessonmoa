@@ -13,6 +13,7 @@ import * as bcrypt from 'bcrypt';
 import { Exclude, instanceToPlain } from 'class-transformer';
 import { License } from './license.entity';
 import { Lesson } from './lesson.entity';
+import { UserLesson } from './user_lesson.entity';
 
 @Entity({ name: 'user' })
 @Unique(['email'])
@@ -67,6 +68,9 @@ export class User extends BaseEntity {
 
   @OneToMany(() => Lesson, (lesson) => lesson.user)
   lessons: Lesson[];
+
+  @OneToMany(() => UserLesson, (userLesson) => userLesson.user)
+  userLessons: UserLesson[];
 
   @BeforeInsert()
   async hashedPassword() {

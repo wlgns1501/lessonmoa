@@ -6,8 +6,8 @@ import { BaseRepository } from 'typeorm-transactional-cls-hooked';
 
 @EntityRepository(UserLesson)
 export class UserLessonRepository extends BaseRepository<UserLesson> {
-  async getUserId(user: User) {
-    return await this.createQueryBuilder('ul').where({ user }).getOne();
+  async getUserId(user: User, lesson: Lesson) {
+    return await this.createQueryBuilder('ul').where({ user, lesson }).getOne();
   }
 
   async applyLesson(user: User, lesson: Lesson) {
@@ -16,6 +16,14 @@ export class UserLessonRepository extends BaseRepository<UserLesson> {
       .into(UserLesson)
       .values({ user, lesson })
       .returning('*')
+      .execute();
+  }
+
+  async withdrawalLesson(user: User, lesson: Lesson) {
+    return await this.createQueryBuilder()
+      .delete()
+      .from(UserLesson)
+      .where({ user, lesson })
       .execute();
   }
 }

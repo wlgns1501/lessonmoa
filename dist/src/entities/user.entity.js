@@ -16,6 +16,7 @@ const bcrypt = require("bcrypt");
 const class_transformer_1 = require("class-transformer");
 const license_entity_1 = require("./license.entity");
 const lesson_entity_1 = require("./lesson.entity");
+const user_lesson_entity_1 = require("./user_lesson.entity");
 let User = class User extends typeorm_1.BaseEntity {
     async hashedPassword() {
         this.password = await bcrypt.hash(this.password, 9);
@@ -87,6 +88,10 @@ __decorate([
     (0, typeorm_1.OneToMany)(() => lesson_entity_1.Lesson, (lesson) => lesson.user),
     __metadata("design:type", Array)
 ], User.prototype, "lessons", void 0);
+__decorate([
+    (0, typeorm_1.OneToMany)(() => user_lesson_entity_1.UserLesson, (userLesson) => userLesson.user),
+    __metadata("design:type", Array)
+], User.prototype, "userLessons", void 0);
 __decorate([
     (0, typeorm_1.BeforeInsert)(),
     __metadata("design:type", Function),
