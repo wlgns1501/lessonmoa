@@ -22,4 +22,6 @@ export declare const HTTP_ERROR: {
     NOT_ENOUGH_POINT: string;
     AMOUNT_NOT_ENOUGH: string;
     CANT_BUY_GOODS: string;
+    APPLY_QUEUE_IS_FULL: string;
+    ALREADY_IN_QUEUE: string;
 };
