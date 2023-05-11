@@ -115,7 +115,7 @@ export class LessonRepository extends BaseRepository<Lesson> {
     return await this.createQueryBuilder()
       .update()
       .set({ status: 'CLOSED' })
-      .where('"startDate" = now()')
+      .where('"startDate" = now()::varchar')
       .execute();
   }
 }

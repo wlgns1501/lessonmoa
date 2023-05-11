@@ -5,6 +5,8 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
+  ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
   Unique,
@@ -14,6 +16,7 @@ import { Exclude, instanceToPlain } from 'class-transformer';
 import { License } from './license.entity';
 import { Lesson } from './lesson.entity';
 import { UserLesson } from './user_lesson.entity';
+import { Location } from './location.entity';
 
 @Entity({ name: 'user' })
 @Unique(['email'])
@@ -71,6 +74,10 @@ export class User extends BaseEntity {
 
   @OneToMany(() => UserLesson, (userLesson) => userLesson.user)
   userLessons: UserLesson[];
+
+  @ManyToOne(() => Location, (location) => location.users)
+  @JoinColumn({ name: 'locationId' })
+  location: Location;
 
   @BeforeInsert()
   async hashedPassword() {

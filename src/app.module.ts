@@ -9,6 +9,8 @@ import { CategoryModule } from './category/category.module';
 import { SubCategoryModule } from './sub_category/sub_category.module';
 import { LessonModule } from './lesson/lesson.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { LocationModule } from './location/location.module';
+import { PlaceModule } from './place/place.module';
 
 @Module({
   imports: [
@@ -38,6 +40,8 @@ import { ScheduleModule } from '@nestjs/schedule';
     SubCategoryModule,
     LessonModule,
     ScheduleModule.forRoot(),
+    LocationModule,
+    PlaceModule,
   ],
   controllers: [AppController],
   providers: [AppService],

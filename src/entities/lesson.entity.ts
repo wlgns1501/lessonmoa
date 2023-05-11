@@ -8,12 +8,15 @@ import {
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
+  Unique,
 } from 'typeorm';
 import { User } from './user.entity';
 import { SubCategory } from './sub_category.entity';
 import { UserLesson } from './user_lesson.entity';
+import { Place } from './place.entity';
 
 @Entity({ name: 'lesson' })
+@Unique(['startDate', 'place'])
 export class Lesson extends BaseEntity {
   @PrimaryGeneratedColumn({ name: 'id', comment: 'PK' })
   @ApiProperty({ description: 'id' })
@@ -85,6 +88,10 @@ export class Lesson extends BaseEntity {
   @ManyToOne(() => SubCategory, (subCategory) => subCategory.lessons)
   @JoinColumn({ name: 'subCategoryId' })
   subCategory: SubCategory;
+
+  @ManyToOne(() => Place, (place) => place.lessons)
+  @JoinColumn({ name: 'placeId' })
+  place: Place;
 
   @OneToMany(() => UserLesson, (userLesson) => userLesson.lesson)
   userLessons: UserLesson[];
