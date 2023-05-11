@@ -63,7 +63,7 @@ export class LessonController {
   }
 
   @Post(':lessonId/apply')
-  @ApiOperation({ summary: '레슨 등록' })
+  @ApiOperation({ summary: '레슨 참여' })
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard)
   applyLesson(@Param('lessonId') lessonId: number, @Req() req: any) {
@@ -71,7 +71,7 @@ export class LessonController {
   }
 
   @Post(':lessonId/withdrawal')
-  @ApiOperation({ summary: '레슨 등록 취소' })
+  @ApiOperation({ summary: '레슨 참여 취소' })
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard)
   withdrawalLesson(@Param('lessonId') lessonId: number, @Req() req: any) {

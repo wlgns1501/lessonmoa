@@ -17,6 +17,7 @@ import { Lesson } from 'src/entities/lesson.entity';
 type APPLY_USER = {
   userId: number;
   lessonId: number;
+  priority: number;
 };
 
 export const TYPE_LESSON_STATUS = {
@@ -31,19 +32,11 @@ export const TYPE_UPDATE_PARTICIPANT = {
 
 @Injectable()
 export class LessonService {
-  private applyQueue: Array<{ userId: number; lessonId: number }> = [
-    // { userId: 1, lessonId: 2 },
-    // { userId: 2, lessonId: 10 },
-    // { userId: 1, lessonId: 11 },
-    // { userId: 1, lessonId: 12 },
-    // { userId: 1, lessonId: 22 },
-    // { userId: 1, lessonId: 32 },
-    // { userId: 1, lessonId: 42 },
-    // { userId: 1, lessonId: 52 },
-    // { userId: 1, lessonId: 62 },
-    // { userId: 1, lessonId: 72 },
-    // { userId: 1, lessonId: 82 },
-  ];
+  private applyQueue: Array<{
+    userId: number;
+    lessonId: number;
+    priority: number;
+  }> = [];
   private isQueueLocked = false;
   private lessonRepository: LessonRepository;
   private subCategoryRepository: SubCategoryRepository;
@@ -97,6 +90,14 @@ export class LessonService {
     }
 
     return checkAlreadyApply;
+  }
+
+  private async findFirstWaitingUser(lessonId: number) {
+    const filteredUsers = await this.applyQueue.filter((el) => {
+      if (el.lessonId === lessonId) return el;
+    });
+
+    return filteredUsers[0];
   }
 
   async getLessonsList(getLessonsDto: GetLessonsDto) {
@@ -264,62 +265,69 @@ export class LessonService {
 
     let applyUser: APPLY_USER;
 
-    if (this.applyQueue.length === 0) {
-      applyUser = { userId: user.id, lessonId };
-    } else if (this.applyQueue.length > 0) {
-      applyUser = this.applyQueue.shift();
-    }
+    const waitingLastUser = await this.findFirstWaitingUser(lessonId);
 
-    if (this.applyQueue.length <= 10) {
-      const { userId, lessonId } = applyUser;
+    console.log(waitingLastUser);
 
-      try {
-        const user = await this.userRepository.findOne({ id: userId });
+    /**
+     * queue에 push 하는 조건
+     * 1. 해당 레슨이 꽉차서
+     * 2. 동시에 신청을 했을때
+     * 3.
+     */
 
-        await this.userLessonRepository.applyLesson(user, lesson);
+    // if ()
 
-        const { raw } = await this.lessonRepository.updateParticipantCount(
-          lessonId,
-          TYPE_UPDATE_PARTICIPANT.PLUS,
-        );
+    // if (this.applyQueue.length <= 100) {
+    //   const { userId, lessonId } = applyUser;
 
-        const [checkCount] = raw;
+    //   try {
+    //     const user = await this.userRepository.findOne({ id: userId });
 
-        if (checkCount.participantCount === 20) {
-          await this.lessonRepository.updateStatusLesson(
-            lessonId,
-            TYPE_LESSON_STATUS.CLOSED,
-          );
-        }
-        console.log(this.applyQueue);
+    //     await this.userLessonRepository.applyLesson(user, lesson);
 
-        return { success: true };
-      } catch (error) {
-        // this.applyQueue.push({ userId, lessonId });
+    //     const { raw } = await this.lessonRepository.updateParticipantCount(
+    //       lessonId,
+    //       TYPE_UPDATE_PARTICIPANT.PLUS,
+    //     );
 
-        throw new HttpException(
-          {
-            message: HTTP_ERROR.BAD_REQUEST,
-            detail: '해당 레슨은 수강 인원이 꽉 찼습니다.',
-          },
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-    } else {
-      this.applyQueue.push({ userId: user.id, lessonId });
+    //     const [checkCount] = raw;
 
-      if (this.applyQueue.length === 100) {
-        this.isQueueLocked = true;
-      }
+    //     if (checkCount.participantCount === 20) {
+    //       await this.lessonRepository.updateStatusLesson(
+    //         lessonId,
+    //         TYPE_LESSON_STATUS.CLOSED,
+    //       );
+    //     }
+    //     console.log(this.applyQueue);
 
-      throw new HttpException(
-        {
-          message: HTTP_ERROR.BAD_REQUEST,
-          detail: '대기열에 추가 되었습니다.',
-        },
-        HttpStatus.BAD_REQUEST,
-      );
-    }
+    //     return { success: true };
+    //   } catch (error) {
+    //     // this.applyQueue.push({ userId, lessonId });
+
+    //     throw new HttpException(
+    //       {
+    //         message: HTTP_ERROR.BAD_REQUEST,
+    //         detail: '해당 레슨은 수강 인원이 꽉 찼습니다.',
+    //       },
+    //       HttpStatus.BAD_REQUEST,
+    //     );
+    //   }
+    // } else {
+    //   // this.applyQueue.push({ userId: user.id, lessonId });
+
+    //   if (this.applyQueue.length === 100) {
+    //     this.isQueueLocked = true;
+    //   }
+
+    //   throw new HttpException(
+    //     {
+    //       message: HTTP_ERROR.BAD_REQUEST,
+    //       detail: '대기열에 추가 되었습니다.',
+    //     },
+    //     HttpStatus.BAD_REQUEST,
+    //   );
+    // }
   }
 
   @Transactional()
@@ -360,14 +368,4 @@ export class LessonService {
 
     return { success: true };
   }
-
-  // @Cron(CronExpression.EVERY_30_SECONDS)
-  // async applyInQueue() {
-  //   this.lessonRepository =
-  //     this.connection.getCustomRepository(LessonRepository);
-  //   this.userLessonRepository =
-  //     this.connection.getCustomRepository(UserLessonRepository);
-  //   this.userRepository = this.connection.getCustomRepository(UserRepository);
-
-  // }
 }
