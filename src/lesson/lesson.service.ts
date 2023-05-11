@@ -258,4 +258,12 @@ export class LessonService {
 
     return { success: true };
   }
+
+  @Cron('0 * * * *')
+  async cronHourlyUpdateCancleLesson() {
+    this.lessonRepository =
+      this.connection.getCustomRepository(LessonRepository);
+
+    await this.lessonRepository.cronHourlyUpdateCancleLesson();
+  }
 }

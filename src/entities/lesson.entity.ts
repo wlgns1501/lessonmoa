@@ -39,6 +39,10 @@ export class Lesson extends BaseEntity {
   @ApiProperty({ description: '수업 최대 인원', required: true, example: 20 })
   userLimit: number;
 
+  @Column({ name: 'minUser', comment: '최소 인원', default: 10 })
+  @ApiProperty({ description: '수업 최소 인원', required: true, example: 10 })
+  minUser: number;
+
   @Column({ name: 'level', comment: '레슨 레벨', nullable: true })
   @ApiProperty({
     description: '레슨 레벨',

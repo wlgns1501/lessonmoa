@@ -110,4 +110,12 @@ export class LessonRepository extends BaseRepository<Lesson> {
       .where({ id: lessonId })
       .execute();
   }
+
+  async cronHourlyUpdateCancleLesson() {
+    return await this.createQueryBuilder()
+      .update()
+      .set({ status: 'CLOSED' })
+      .where('"startDate" = now()')
+      .execute();
+  }
 }
