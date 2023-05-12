@@ -1,6 +1,15 @@
-import { Controller, Get, HttpCode, HttpStatus, Param } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Query,
+} from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { LocationService } from './location.service';
+import { GetLocationsDto } from './dtos/get_locations.dto';
+import { GetLocationsPipe } from './dtos/get_locations.pipe';
 
 @ApiTags('location')
 @Controller('location')
@@ -10,8 +19,10 @@ export class LocationController {
   @Get('')
   @ApiOperation({ summary: '지역 리스트' })
   @HttpCode(HttpStatus.OK)
-  getLocations() {
-    return this.service.getLocations();
+  getLocations(
+    @Query(new GetLocationsPipe()) getLocationsDto: GetLocationsDto,
+  ) {
+    return this.service.getLocations(getLocationsDto);
   }
 
   @Get(':locationId')

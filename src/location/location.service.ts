@@ -2,17 +2,18 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { HTTP_ERROR } from 'src/constants/http-error';
 import { LocationRepository } from 'src/repositories/location.repository';
 import { Connection } from 'typeorm';
+import { GetLocationsDto } from './dtos/get_locations.dto';
 
 @Injectable()
 export class LocationService {
   private locationRepository: LocationRepository;
   constructor(private connection: Connection) {}
 
-  async getLocations() {
+  async getLocations(getLocationsDto: GetLocationsDto) {
     this.locationRepository =
       this.connection.getCustomRepository(LocationRepository);
 
-    const locations = this.locationRepository.getLocations();
+    const locations = this.locationRepository.getLocations(getLocationsDto);
 
     return locations;
   }

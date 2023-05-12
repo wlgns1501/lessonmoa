@@ -1,10 +1,13 @@
 import { Location } from 'src/entities/location.entity';
+import { GetLocationsDto } from 'src/location/dtos/get_locations.dto';
 import { EntityRepository } from 'typeorm';
 import { BaseRepository } from 'typeorm-transactional-cls-hooked';
 
 @EntityRepository(Location)
 export class LocationRepository extends BaseRepository<Location> {
-  async getLocations() {
+  async getLocations(getLocationsDto: GetLocationsDto) {
+    const { page, pageSize } = getLocationsDto;
+
     return await this.createQueryBuilder('l')
       .leftJoin('l.places', 'p')
       .select([
@@ -13,6 +16,8 @@ export class LocationRepository extends BaseRepository<Location> {
         'COUNT(p.id)::int as "placeCount"',
       ])
       .groupBy('l.id')
+      .offset((page - 1) * pageSize)
+      .limit(pageSize)
       .orderBy('l.name', 'ASC')
       .getRawMany();
   }
