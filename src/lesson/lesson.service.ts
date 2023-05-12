@@ -13,10 +13,12 @@ import { UserLessonRepository } from 'src/repositories/user_lesson.repository';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { UserRepository } from 'src/repositories/user.repository';
 import { Lesson } from 'src/entities/lesson.entity';
+import { PlaceRepository } from 'src/repositories/place.repository';
 
 export const TYPE_LESSON_STATUS = {
   ACTIVE: 'ACTIVE',
   CLOSED: 'CLOSED',
+  CANCELED: 'CANCELED',
 };
 
 export const TYPE_UPDATE_PARTICIPANT = {
@@ -30,6 +32,8 @@ export class LessonService {
   private subCategoryRepository: SubCategoryRepository;
   private userLessonRepository: UserLessonRepository;
   private userRepository: UserRepository;
+  private placeRepository: PlaceRepository;
+
   constructor(private readonly connection: Connection) {}
 
   private async checkUserLimit(lessonId: number) {
@@ -92,6 +96,7 @@ export class LessonService {
     this.subCategoryRepository = this.connection.getCustomRepository(
       SubCategoryRepository,
     );
+    this.placeRepository = this.connection.getCustomRepository(PlaceRepository);
 
     if (!user.isInstructor) {
       throw new HttpException(
@@ -103,16 +108,19 @@ export class LessonService {
       );
     }
 
-    const { subCategoryId } = createLessonDto;
+    const { subCategoryId, placeId } = createLessonDto;
 
     const subCategory = await this.subCategoryRepository.getSubCategory(
       subCategoryId,
     );
 
+    const place = await this.placeRepository.getPlace(placeId);
+
     const { raw } = await this.lessonRepository.createLesson(
       user,
       createLessonDto,
       subCategory,
+      place,
     );
 
     const [lesson] = raw;
@@ -146,18 +154,22 @@ export class LessonService {
     this.subCategoryRepository = this.connection.getCustomRepository(
       SubCategoryRepository,
     );
+    this.placeRepository = this.connection.getCustomRepository(PlaceRepository);
 
-    const { subCategoryId } = updateLessonDto;
+    const { subCategoryId, placeId } = updateLessonDto;
 
     const subCategory = await this.subCategoryRepository.getSubCategory(
       subCategoryId,
     );
+
+    const place = await this.placeRepository.getPlace(placeId);
 
     try {
       const { raw, affected } = await this.lessonRepository.updateLesson(
         lessonId,
         updateLessonDto,
         subCategory,
+        place,
       );
 
       if (affected === 0) {
@@ -198,6 +210,26 @@ export class LessonService {
     this.userRepository = this.connection.getCustomRepository(UserRepository);
 
     const lesson = await this.checkUserLimit(lessonId);
+
+    switch (lesson.status) {
+      case TYPE_LESSON_STATUS.CANCELED:
+        throw new HttpException(
+          {
+            message: HTTP_ERROR.BAD_REQUEST,
+            detail: '해당 레슨의 최소 인원이 되지 않아 취소 되었습니다.',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      case TYPE_LESSON_STATUS.CLOSED:
+        throw new HttpException(
+          {
+            message: HTTP_ERROR.BAD_REQUEST,
+            detail:
+              '해당 레슨의 인원이 꽉찼습니다. 다른 일정의 수업을 확인해주세요.',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+    }
 
     await this.checkAlreadyApply(user, lesson);
 

@@ -1,4 +1,5 @@
 import { Lesson } from 'src/entities/lesson.entity';
+import { Place } from 'src/entities/place.entity';
 import { SubCategory } from 'src/entities/sub_category.entity';
 import { User } from 'src/entities/user.entity';
 import { CreateLessonDto } from 'src/lesson/dtos/create_lesson.dto';
@@ -36,6 +37,7 @@ export class LessonRepository extends BaseRepository<Lesson> {
     user: User,
     createLessonDto: CreateLessonDto,
     subCategory: SubCategory,
+    place: Place,
   ) {
     const { name, userLimit, level, startDate, endDate, content } =
       createLessonDto;
@@ -52,6 +54,7 @@ export class LessonRepository extends BaseRepository<Lesson> {
         endDate,
         user,
         subCategory,
+        place,
       })
       .returning('*')
       .execute();
@@ -70,13 +73,23 @@ export class LessonRepository extends BaseRepository<Lesson> {
     lessonId: number,
     updateLessonDto: UpdateLessonDto,
     subCategory: SubCategory,
+    place: Place,
   ) {
     const { name, content, userLimit, level, startDate, endDate } =
       updateLessonDto;
 
     return await this.createQueryBuilder()
       .update(Lesson)
-      .set({ name, content, userLimit, level, startDate, endDate, subCategory })
+      .set({
+        name,
+        content,
+        userLimit,
+        level,
+        startDate,
+        endDate,
+        subCategory,
+        place,
+      })
       .where({ id: lessonId })
       .returning('*')
       .execute();

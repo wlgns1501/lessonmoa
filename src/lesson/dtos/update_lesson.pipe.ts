@@ -21,6 +21,7 @@ export class UpdateLessonPipe implements PipeTransform<UpdateLessonDto> {
       startDate: SCHEMA.UPDATE_NOTNULL_STRING('시작 시간'),
       endDate: SCHEMA.UPDATE_NOTNULL_STRING('종료 시간'),
       subCategoryId: SCHEMA.UPDATE_NOTNULL_NUMBER('서브 카테고리 Id'),
+      placeId: SCHEMA.UPDATE_NOTNULL_NUMBER('장소 Id'),
     });
 
     const { error, value: validatedValue } = validationSchema.validate(value);

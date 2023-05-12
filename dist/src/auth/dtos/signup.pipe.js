@@ -17,6 +17,7 @@ let SignUpPipe = class SignUpPipe {
         const validationSchema = Joi.object({
             email: schema_1.SCHEMA.REQUIRED_STRING_WITH_REGEX('이메일', regex_1.EMAIL_REGEX),
             password: schema_1.SCHEMA.REQUIRED_STRING('비밀번호'),
+            locationId: schema_1.SCHEMA.REQUIRED_NUMBER('지역 Id'),
             nickname: schema_1.SCHEMA.REQUIRED_STRING('닉네임'),
         });
         const { error, value: validatedValue } = validationSchema.validate(value);

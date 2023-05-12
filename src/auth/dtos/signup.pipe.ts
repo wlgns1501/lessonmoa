@@ -17,6 +17,7 @@ export class SignUpPipe implements PipeTransform<SignUpDto> {
     const validationSchema = Joi.object({
       email: SCHEMA.REQUIRED_STRING_WITH_REGEX('이메일', EMAIL_REGEX),
       password: SCHEMA.REQUIRED_STRING('비밀번호'),
+      locationId: SCHEMA.REQUIRED_NUMBER('지역 Id'),
       nickname: SCHEMA.REQUIRED_STRING('닉네임'),
     });
 

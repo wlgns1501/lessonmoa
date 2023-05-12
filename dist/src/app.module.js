@@ -19,6 +19,7 @@ const sub_category_module_1 = require("./sub_category/sub_category.module");
 const lesson_module_1 = require("./lesson/lesson.module");
 const schedule_1 = require("@nestjs/schedule");
 const location_module_1 = require("./location/location.module");
+const place_module_1 = require("./place/place.module");
 let AppModule = class AppModule {
 };
 AppModule = __decorate([
@@ -50,6 +51,7 @@ AppModule = __decorate([
             lesson_module_1.LessonModule,
             schedule_1.ScheduleModule.forRoot(),
             location_module_1.LocationModule,
+            place_module_1.PlaceModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],
