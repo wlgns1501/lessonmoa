@@ -20,7 +20,6 @@ export class PlaceService {
     if (locationId) {
       const location = await this.locationRepository.getLocation(locationId);
       places = await this.placeRepository.getPlacesByLocationId(
-        locationId,
         getPlacesDto,
         location,
       );

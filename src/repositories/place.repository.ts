@@ -6,11 +6,7 @@ import { BaseRepository } from 'typeorm-transactional-cls-hooked';
 
 @EntityRepository(Place)
 export class PlaceRepository extends BaseRepository<Place> {
-  async getPlacesByLocationId(
-    locationId: number,
-    getPlacesDto: GetPlacesDto,
-    location: Location,
-  ) {
+  async getPlacesByLocationId(getPlacesDto: GetPlacesDto, location: Location) {
     const { page, pageSize } = getPlacesDto;
 
     return await this.createQueryBuilder('p')
