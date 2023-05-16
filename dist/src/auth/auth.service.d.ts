@@ -5,6 +5,7 @@ import { User } from 'src/entities/user.entity';
 export declare class AuthService {
     private readonly connection;
     private authRepository;
+    private locationRepository;
     constructor(connection: Connection);
     private getAccessToken;
     private getRefreshToken;

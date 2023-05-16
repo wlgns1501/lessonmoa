@@ -47,7 +47,11 @@ __decorate([
 ], User.prototype, "email", void 0);
 __decorate([
     (0, class_transformer_1.Exclude)(),
-    (0, typeorm_1.Column)({ name: 'password', comment: '비밀번호', nullable: true }),
+    (0, typeorm_1.Column)({
+        name: 'password',
+        comment: '비밀번호',
+        nullable: true,
+    }),
     (0, swagger_1.ApiProperty)({
         description: '비밀번호',
         nullable: false,

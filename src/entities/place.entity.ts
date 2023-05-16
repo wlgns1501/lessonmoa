@@ -30,5 +30,5 @@ export class Place extends BaseEntity {
   location: Location;
 
   @OneToMany(() => Lesson, (lesson) => lesson.place)
-  lessons: Lesson;
+  lessons: Lesson[];
 }

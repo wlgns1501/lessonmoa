@@ -11,11 +11,16 @@ const user_entity_1 = require("../entities/user.entity");
 const typeorm_1 = require("typeorm");
 const typeorm_transactional_cls_hooked_1 = require("typeorm-transactional-cls-hooked");
 let AuthRepository = class AuthRepository extends typeorm_transactional_cls_hooked_1.BaseRepository {
-    async signUp(signUpDto) {
-        return this.create(Object.assign({}, signUpDto)).save();
+    async signUp(signUpDto, location) {
+        const { nickname, email, password } = signUpDto;
+        return await this.createQueryBuilder()
+            .insert()
+            .into(user_entity_1.User)
+            .values({ nickname, email, password, location })
+            .execute();
     }
     async signOut(userId) {
-        return this.delete({
+        return await this.delete({
             id: userId,
         });
     }

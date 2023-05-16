@@ -8,10 +8,12 @@ import { HTTP_ERROR } from 'src/constants/http-error';
 import { POSTGRES_ERROR_CODE } from 'src/constants/postgres-error';
 import * as jwt from 'jsonwebtoken';
 import { User } from 'src/entities/user.entity';
+import { LocationRepository } from 'src/repositories/location.repository';
 
 @Injectable()
 export class AuthService {
   private authRepository: AuthRepository;
+  private locationRepository: LocationRepository;
   constructor(private readonly connection: Connection) {}
 
   private getAccessToken(user: User) {
@@ -34,7 +36,15 @@ export class AuthService {
   async signUp(signUpDto: SignUpDto) {
     try {
       this.authRepository = this.connection.getCustomRepository(AuthRepository);
-      await this.authRepository.signUp(signUpDto);
+      this.locationRepository =
+        this.connection.getCustomRepository(LocationRepository);
+
+      const { locationId } = signUpDto;
+      const location = await this.locationRepository.getLocationById(
+        locationId,
+      );
+
+      await this.authRepository.signUp(signUpDto, location);
 
       return { success: true };
     } catch (error) {

@@ -36,7 +36,11 @@ export class User extends BaseEntity {
   email: string;
 
   @Exclude()
-  @Column({ name: 'password', comment: '비밀번호', nullable: true })
+  @Column({
+    name: 'password',
+    comment: '비밀번호',
+    nullable: true,
+  })
   @ApiProperty({
     description: '비밀번호',
     nullable: false,
@@ -80,11 +84,11 @@ export class User extends BaseEntity {
   location: Location;
 
   @BeforeInsert()
-  async hashedPassword() {
+  async hashedPassword(): Promise<void> {
     this.password = await bcrypt.hash(this.password, 9);
   }
 
-  async validatedPassword(password: string) {
+  async validatedPassword(password: string): Promise<boolean> {
     const hash = await bcrypt.compare(password, this.password);
 
     return hash;

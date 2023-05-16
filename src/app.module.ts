@@ -11,6 +11,10 @@ import { LessonModule } from './lesson/lesson.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { LocationModule } from './location/location.module';
 import { PlaceModule } from './place/place.module';
+import {
+  initializeTransactionalContext,
+  patchTypeORMRepositoryWithBaseRepository,
+} from 'typeorm-transactional-cls-hooked';
 
 @Module({
   imports: [

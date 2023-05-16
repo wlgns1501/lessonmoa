@@ -19,7 +19,7 @@ export declare class User extends BaseEntity {
     validatedPassword(password: string): Promise<boolean>;
     toJSON(): Record<string, any>;
 }
-declare const UserInfo_base: import("@nestjs/common").Type<Pick<User, "email" | "password" | "nickname">>;
+declare const UserInfo_base: import("@nestjs/common").Type<Pick<User, "email" | "nickname" | "password">>;
 export declare class UserInfo extends UserInfo_base {
 }
 export {};

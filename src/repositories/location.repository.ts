@@ -27,6 +27,14 @@ export class LocationRepository extends BaseRepository<Location> {
       .where({ id: locationId })
       .leftJoinAndSelect('location.places', 'places')
       .leftJoinAndSelect('places.lessons', 'lessons')
+      .leftJoinAndSelect('lessons.user', 'user')
       .getOne();
+  }
+
+  async getLocationById(locationId: number) {
+    return await this.createQueryBuilder('l')
+      .select(['id', 'name'])
+      .where({ id: locationId })
+      .getRawOne();
   }
 }

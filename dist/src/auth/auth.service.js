@@ -19,6 +19,7 @@ const http_error_1 = require("../constants/http-error");
 const postgres_error_1 = require("../constants/postgres-error");
 const jwt = require("jsonwebtoken");
 const user_entity_1 = require("../entities/user.entity");
+const location_repository_1 = require("../repositories/location.repository");
 let AuthService = class AuthService {
     constructor(connection) {
         this.connection = connection;
@@ -32,7 +33,11 @@ let AuthService = class AuthService {
     async signUp(signUpDto) {
         try {
             this.authRepository = this.connection.getCustomRepository(auth_repository_1.AuthRepository);
-            await this.authRepository.signUp(signUpDto);
+            this.locationRepository =
+                this.connection.getCustomRepository(location_repository_1.LocationRepository);
+            const { locationId } = signUpDto;
+            const location = await this.locationRepository.getLocationById(locationId);
+            await this.authRepository.signUp(signUpDto, location);
             return { success: true };
         }
         catch (error) {
