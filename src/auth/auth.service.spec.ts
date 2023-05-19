@@ -1,17 +1,37 @@
+// jest.mock('src/repositories/location.repository');
+
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthService } from './auth.service';
-import {
-  BaseEntity,
-  Connection,
-  Repository,
-  getCustomRepository,
-} from 'typeorm';
-import { User } from 'src/entities/user.entity';
-import { getRepositoryToken } from '@nestjs/typeorm';
+import { Connection } from 'typeorm';
 import { AuthRepository } from 'src/repositories/auth.repository';
 import { SignUpDto } from './dtos/signup.dto';
-import * as bcrypt from 'bcrypt';
 import { LocationRepository } from 'src/repositories/location.repository';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { User } from 'src/entities/user.entity';
+import { Location } from 'src/entities/location.entity';
+
+jest.mock('typeorm-transactional-cls-hooked', () => ({
+  Transactional: () => () => ({}),
+  BaseRepository: class {},
+  IsolationLevel: { SERIALIZABLE: 'SERIALIZABLE' },
+}));
+
+const mockGetCustomRepository = jest.fn();
+
+const mockConnection = {
+  getCustomRepository: mockGetCustomRepository,
+};
+
+const mockLocation = { id: 1, name: '서울특별시 성북구' };
+const mockLocationRepository = {
+  getLocationById: jest.fn().mockImplementation((locationId) => {
+    if (locationId === 1) {
+      return Promise.resolve(mockLocation);
+    } else {
+      return Promise.resolve(null);
+    }
+  }),
+};
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -23,16 +43,23 @@ describe('AuthService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AuthService,
-        { provide: Connection, useClass: getCustomRepository },
-        ,
+        { provide: Connection, useValue: mockConnection },
+        // {
+        //   provide: getRepositoryToken(User),
+        //   useValue: mockUserRepository,
+        // },
+        {
+          provide: LocationRepository,
+          useValue: mockLocationRepository,
+        },
         AuthRepository,
-        LocationRepository,
+        // LocationRepository,
       ],
     }).compile();
 
     service = module.get<AuthService>(AuthService);
-    authRepository = module.get<AuthRepository>(AuthRepository);
     connection = module.get<Connection>(Connection);
+    authRepository = module.get<AuthRepository>(AuthRepository);
     locationRepository = module.get<LocationRepository>(LocationRepository);
   });
 
@@ -40,47 +67,43 @@ describe('AuthService', () => {
     describe('회원가입 테스트', () => {
       it('회원 가입 테스트', async () => {
         const signUpDto: SignUpDto = {
-          email: 'test@test.com',
-          password: 'test',
+          email: 'wlgns1501@naver.com',
+          password: 'gkstlsyjh116!',
           locationId: 1,
-          nickname: 'testUser',
+          nickname: '축구꿈나무',
         };
-
-        const hashedPassword = await bcrypt.hash(signUpDto.password, 9);
 
         const mockLocation = { id: 1, name: '서울특별시 성북구' };
 
-        jest
-          .spyOn(locationRepository, 'getLocationById')
-          .mockResolvedValue(mockLocation);
+        // const aa = jest
+        //   .spyOn(locationRepository, 'getLocationById')
+        //   .mockResolvedValue(mockLocation);
 
-        const location = await locationRepository.getLocation(
+        const location = await locationRepository.getLocationById(
           signUpDto.locationId,
         );
 
         const mockUser = {
-          identifiers: [{ id: 38 }],
+          identifiers: [{ id: 10 }],
           generatedMaps: [
             {
-              id: 38,
+              id: 10,
               isInstructor: false,
               isAdmin: false,
-              createdAt: '2023-05-16T05:11:19.124Z',
+              createdAt: '2023-05-08 15:56:06.877',
             },
           ],
           raw: [
             {
-              id: 38,
+              id: 10,
               isInstructor: false,
               isAdmin: false,
-              createdAt: '2023-05-16T05:11:19.124Z',
+              createdAt: '2023-05-08 15:56:06.877',
             },
           ],
         };
 
         jest.spyOn(authRepository, 'signUp').mockResolvedValue(mockUser);
-
-        // await authRepository.signUp(signUpDto, location);
 
         const result = await service.signUp(signUpDto);
 

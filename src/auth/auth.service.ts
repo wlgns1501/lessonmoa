@@ -34,17 +34,15 @@ export class AuthService {
 
   @Transactional()
   async signUp(signUpDto: SignUpDto) {
+    this.authRepository = this.connection.getCustomRepository(AuthRepository);
+    this.locationRepository =
+      this.connection.getCustomRepository(LocationRepository);
+
+    const { locationId } = signUpDto;
+    const location = await this.locationRepository.getLocationById(locationId);
+
     try {
-      this.authRepository = this.connection.getCustomRepository(AuthRepository);
-      this.locationRepository =
-        this.connection.getCustomRepository(LocationRepository);
-
-      const { locationId } = signUpDto;
-      const location = await this.locationRepository.getLocationById(
-        locationId,
-      );
-
-      await this.authRepository.signUp(signUpDto, location);
+      const user = await this.authRepository.signUp(signUpDto, location);
 
       return { success: true };
     } catch (error) {
@@ -68,8 +66,6 @@ export class AuthService {
             );
           }
       }
-
-      console.error();
     }
   }
 

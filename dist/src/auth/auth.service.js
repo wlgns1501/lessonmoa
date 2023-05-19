@@ -56,7 +56,6 @@ let AuthService = class AuthService {
                         }, common_1.HttpStatus.BAD_REQUEST);
                     }
             }
-            console.error();
         }
     }
     async signIn(signInDto) {
