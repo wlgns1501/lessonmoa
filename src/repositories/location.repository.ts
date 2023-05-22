@@ -32,9 +32,6 @@ export class LocationRepository extends BaseRepository<Location> {
   }
 
   async getLocationById(locationId: number) {
-    return await this.createQueryBuilder('l')
-      .select(['id', 'name'])
-      .where({ id: locationId })
-      .getRawOne();
+    return await this.findOne({ id: locationId });
   }
 }

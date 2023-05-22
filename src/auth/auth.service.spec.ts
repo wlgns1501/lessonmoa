@@ -1,14 +1,13 @@
-// jest.mock('src/repositories/location.repository');
-
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthService } from './auth.service';
 import { Connection } from 'typeorm';
 import { AuthRepository } from 'src/repositories/auth.repository';
 import { SignUpDto } from './dtos/signup.dto';
 import { LocationRepository } from 'src/repositories/location.repository';
-import { getRepositoryToken } from '@nestjs/typeorm';
-import { User } from 'src/entities/user.entity';
-import { Location } from 'src/entities/location.entity';
+import { HttpException } from '@nestjs/common';
+
+jest.mock('src/repositories/auth.repository');
+jest.mock('src/repositories/location.repository');
 
 jest.mock('typeorm-transactional-cls-hooked', () => ({
   Transactional: () => () => ({}),
@@ -16,27 +15,22 @@ jest.mock('typeorm-transactional-cls-hooked', () => ({
   IsolationLevel: { SERIALIZABLE: 'SERIALIZABLE' },
 }));
 
-const mockGetCustomRepository = jest.fn();
+const mockGetCustomRepository = jest.fn((repository) => {
+  if (repository === AuthRepository) {
+    return new AuthRepository();
+  } else if (repository === LocationRepository) {
+    return new LocationRepository();
+  }
+});
 
 const mockConnection = {
   getCustomRepository: mockGetCustomRepository,
 };
 
-const mockLocation = { id: 1, name: '서울특별시 성북구' };
-const mockLocationRepository = {
-  getLocationById: jest.fn().mockImplementation((locationId) => {
-    if (locationId === 1) {
-      return Promise.resolve(mockLocation);
-    } else {
-      return Promise.resolve(null);
-    }
-  }),
-};
-
 describe('AuthService', () => {
   let service: AuthService;
-  let authRepository: AuthRepository;
   let connection: Connection;
+  let authRepository: AuthRepository;
   let locationRepository: LocationRepository;
 
   beforeEach(async () => {
@@ -44,16 +38,8 @@ describe('AuthService', () => {
       providers: [
         AuthService,
         { provide: Connection, useValue: mockConnection },
-        // {
-        //   provide: getRepositoryToken(User),
-        //   useValue: mockUserRepository,
-        // },
-        {
-          provide: LocationRepository,
-          useValue: mockLocationRepository,
-        },
         AuthRepository,
-        // LocationRepository,
+        LocationRepository,
       ],
     }).compile();
 
@@ -64,46 +50,102 @@ describe('AuthService', () => {
   });
 
   describe('signUp', () => {
-    describe('회원가입 테스트', () => {
-      it('회원 가입 테스트', async () => {
-        const signUpDto: SignUpDto = {
-          email: 'wlgns1501@naver.com',
-          password: 'gkstlsyjh116!',
-          locationId: 1,
-          nickname: '축구꿈나무',
+    describe('get location by Id', () => {
+      test('해당 location이 없으면 location === undefined', async () => {
+        const mockSignUpDto = {
+          email: 'test@test.com',
+          password: 'test',
+          nickname: 'testUser',
+          locationId: 999,
         };
 
-        const mockLocation = { id: 1, name: '서울특별시 성북구' };
-
-        // const aa = jest
-        //   .spyOn(locationRepository, 'getLocationById')
-        //   .mockResolvedValue(mockLocation);
+        jest
+          .spyOn(locationRepository, 'getLocationById')
+          .mockResolvedValue(undefined);
 
         const location = await locationRepository.getLocationById(
-          signUpDto.locationId,
+          mockSignUpDto.locationId,
         );
 
-        const mockUser = {
-          identifiers: [{ id: 10 }],
-          generatedMaps: [
-            {
-              id: 10,
-              isInstructor: false,
-              isAdmin: false,
-              createdAt: '2023-05-08 15:56:06.877',
-            },
-          ],
-          raw: [
-            {
-              id: 10,
-              isInstructor: false,
-              isAdmin: false,
-              createdAt: '2023-05-08 15:56:06.877',
-            },
-          ],
+        expect(location).toBeUndefined();
+      });
+
+      test('해당 location이 없으면 404 에러 반환', async () => {
+        const mockSignUpDto = {
+          email: 'test@test.com',
+          password: 'test',
+          nickname: 'testUser',
+          locationId: 999,
         };
 
-        jest.spyOn(authRepository, 'signUp').mockResolvedValue(mockUser);
+        await expect(service.signUp(mockSignUpDto)).rejects.toThrowError(
+          HttpException,
+        );
+      });
+
+      it('get location 성공', async () => {
+        const mockLocation = {
+          id: 1,
+          name: '서울특별시 성북구',
+          places: null,
+          users: null,
+        };
+
+        jest
+          .spyOn(locationRepository, 'getLocationById')
+          .mockResolvedValue(mockLocation);
+
+        const location = await locationRepository.getLocationById(1);
+
+        expect(location).toBe(mockLocation);
+      });
+    });
+
+    describe('회원가입 테스트', () => {
+      it('중복 이메일 일 때 에러 반환', async () => {
+        const signUpDto: SignUpDto = {
+          email: 'wlgns1501@gmail.com',
+          password: 'test',
+          nickname: 'testUser',
+          locationId: 1,
+        };
+
+        const mockLocation = {
+          id: 1,
+          name: '서울특별시 성북구',
+          places: null,
+          users: null,
+        };
+
+        jest
+          .spyOn(locationRepository, 'getLocationById')
+          .mockResolvedValue(mockLocation);
+
+        await expect(service.signUp(signUpDto)).rejects.toThrowError(
+          HttpException,
+        );
+      });
+
+      it('signUp test', async () => {
+        const signUpDto: SignUpDto = {
+          email: 'test@test.com',
+          password: 'test',
+          nickname: 'testUser',
+          locationId: 1,
+        };
+
+        const mockLocation = {
+          id: 1,
+          name: '서울특별시 성북구',
+          places: null,
+          users: null,
+        };
+
+        jest
+          .spyOn(locationRepository, 'getLocationById')
+          .mockResolvedValue(mockLocation);
+
+        jest.spyOn(service, 'signUp').mockResolvedValue({ success: true });
 
         const result = await service.signUp(signUpDto);
 

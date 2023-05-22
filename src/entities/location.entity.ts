@@ -10,7 +10,7 @@ import { Place } from './place.entity';
 import { User } from './user.entity';
 
 @Entity({ name: 'location' })
-export class Location extends BaseEntity {
+export class Location {
   @PrimaryGeneratedColumn({ name: 'id', comment: 'PK' })
   @ApiProperty({ description: 'id' })
   id: number;

@@ -9,6 +9,7 @@ import { POSTGRES_ERROR_CODE } from 'src/constants/postgres-error';
 import * as jwt from 'jsonwebtoken';
 import { User } from 'src/entities/user.entity';
 import { LocationRepository } from 'src/repositories/location.repository';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class AuthService {
@@ -41,8 +42,18 @@ export class AuthService {
     const { locationId } = signUpDto;
     const location = await this.locationRepository.getLocationById(locationId);
 
+    if (!location) {
+      throw new HttpException(
+        {
+          message: HTTP_ERROR.NOT_FOUND,
+          detail: '해당 지역은 존재하지 않습니다.',
+        },
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
     try {
-      const user = await this.authRepository.signUp(signUpDto, location);
+      await this.authRepository.signUp(signUpDto, location);
 
       return { success: true };
     } catch (error) {
