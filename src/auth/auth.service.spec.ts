@@ -110,16 +110,18 @@ describe('AuthService', () => {
           locationId: 1,
         };
 
-        const mockLocation = {
-          id: 1,
-          name: '서울특별시 성북구',
-          places: null,
-          users: null,
-        };
+        await expect(service.signUp(signUpDto)).rejects.toThrowError(
+          HttpException,
+        );
+      });
 
-        jest
-          .spyOn(locationRepository, 'getLocationById')
-          .mockResolvedValue(mockLocation);
+      it('중복 닉네임 일 때 에러 반환', async () => {
+        const signUpDto: SignUpDto = {
+          email: 'test@test.com',
+          password: 'test',
+          nickname: '축구 꿈나무',
+          locationId: 1,
+        };
 
         await expect(service.signUp(signUpDto)).rejects.toThrowError(
           HttpException,
