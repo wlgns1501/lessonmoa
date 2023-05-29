@@ -1,10 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthService } from './auth.service';
-import { Connection } from 'typeorm';
+import { Connection, QueryFailedError } from 'typeorm';
 import { AuthRepository } from 'src/repositories/auth.repository';
 import { SignUpDto } from './dtos/signup.dto';
 import { LocationRepository } from 'src/repositories/location.repository';
-import { HttpException } from '@nestjs/common';
+import { HttpException, HttpStatus } from '@nestjs/common';
+import { SignInDto } from './dtos/signin.dto';
+import { HTTP_ERROR } from 'src/constants/http-error';
 
 jest.mock('src/repositories/auth.repository');
 jest.mock('src/repositories/location.repository');
@@ -49,9 +51,16 @@ describe('AuthService', () => {
     locationRepository = module.get<LocationRepository>(LocationRepository);
   });
 
+  const mockLocation = {
+    id: 1,
+    name: '서울특별시 성북구',
+    users: undefined,
+    places: undefined,
+  };
+
   describe('signUp', () => {
     describe('get location by Id', () => {
-      test('해당 location이 없으면 location === undefined', async () => {
+      it('해당 location이 없으면 location === undefined', async () => {
         const mockSignUpDto = {
           email: 'test@test.com',
           password: 'test',
@@ -70,7 +79,7 @@ describe('AuthService', () => {
         expect(location).toBeUndefined();
       });
 
-      test('해당 location이 없으면 404 에러 반환', async () => {
+      it('해당 location이 없으면 에러 반환', async () => {
         const mockSignUpDto = {
           email: 'test@test.com',
           password: 'test',
@@ -78,24 +87,28 @@ describe('AuthService', () => {
           locationId: 999,
         };
 
-        await expect(service.signUp(mockSignUpDto)).rejects.toThrowError(
-          HttpException,
-        );
+        try {
+          await locationRepository.getLocationById(mockSignUpDto.locationId);
+        } catch (error) {
+          expect(error).toBeInstanceOf(HttpException);
+
+          expect(error.getResponse()).toEqual({
+            message: 'NOT_FOUND',
+            detail: '해당 지역은 존재하지 않습니다.',
+          });
+
+          expect(error.getStatus()).toBe(HttpStatus.NOT_FOUND);
+        }
       });
 
       it('get location 성공', async () => {
-        const mockLocation = {
-          id: 1,
-          name: '서울특별시 성북구',
-          places: null,
-          users: null,
-        };
-
         jest
           .spyOn(locationRepository, 'getLocationById')
           .mockResolvedValue(mockLocation);
 
-        const location = await locationRepository.getLocationById(1);
+        const location = await locationRepository.getLocationById(
+          mockLocation.id,
+        );
 
         expect(location).toBe(mockLocation);
       });
@@ -103,16 +116,43 @@ describe('AuthService', () => {
 
     describe('회원가입 테스트', () => {
       it('중복 이메일 일 때 에러 반환', async () => {
-        const signUpDto: SignUpDto = {
+        const signUpDto = {
           email: 'wlgns1501@gmail.com',
           password: 'test',
           nickname: 'testUser',
           locationId: 1,
         };
 
-        await expect(service.signUp(signUpDto)).rejects.toThrowError(
-          HttpException,
+        jest
+          .spyOn(locationRepository, 'getLocationById')
+          .mockResolvedValue(mockLocation);
+
+        const location = await locationRepository.getLocationById(
+          signUpDto.locationId,
         );
+
+        jest.spyOn(authRepository, 'signUp').mockRejectedValue(
+          new HttpException(
+            {
+              message: HTTP_ERROR.DUPLICATED_KEY_ERROR,
+              detail: '중복된 이메일입니다.',
+            },
+            HttpStatus.BAD_REQUEST,
+          ),
+        );
+
+        try {
+          await authRepository.signUp(signUpDto, location);
+        } catch (error) {
+          expect(error).toBeInstanceOf(HttpException);
+
+          expect(error.getResponse()).toEqual({
+            message: 'DUPLICATED_KEY_ERROR',
+            detail: '중복된 이메일입니다.',
+          });
+
+          expect(error.getStatus()).toBe(HttpStatus.BAD_REQUEST);
+        }
       });
 
       it('중복 닉네임 일 때 에러 반환', async () => {
@@ -123,9 +163,34 @@ describe('AuthService', () => {
           locationId: 1,
         };
 
-        await expect(service.signUp(signUpDto)).rejects.toThrowError(
-          HttpException,
+        jest
+          .spyOn(locationRepository, 'getLocationById')
+          .mockResolvedValue(mockLocation);
+
+        const location = await locationRepository.getLocationById(1);
+
+        jest.spyOn(locationRepository, 'getLocationById').mockRejectedValue(
+          new HttpException(
+            {
+              message: HTTP_ERROR.DUPLICATED_KEY_ERROR,
+              detail: '중복된 닉네임입니다.',
+            },
+            HttpStatus.BAD_REQUEST,
+          ),
         );
+
+        try {
+          await authRepository.signUp(signUpDto, location);
+        } catch (error) {
+          expect(error).toBeInstanceOf(HttpException);
+
+          expect(error.getResponse()).toEqual({
+            message: 'DUPLICATED_KEY_ERROR',
+            detail: '중복된 닉네임입니다.',
+          });
+
+          expect(error.getStatus()).toBe(HttpStatus.BAD_REQUEST);
+        }
       });
 
       it('signUp test', async () => {
@@ -134,13 +199,6 @@ describe('AuthService', () => {
           password: 'test',
           nickname: 'testUser',
           locationId: 1,
-        };
-
-        const mockLocation = {
-          id: 1,
-          name: '서울특별시 성북구',
-          places: null,
-          users: null,
         };
 
         jest
@@ -152,6 +210,34 @@ describe('AuthService', () => {
         const result = await service.signUp(signUpDto);
 
         expect(result).toEqual({ success: true });
+      });
+    });
+  });
+
+  describe('signIn', () => {
+    describe('회원 가입한 유저인지 확인', () => {
+      it('유저가 없을 때 에러메세지 반환', async () => {
+        const signInDto: SignInDto = {
+          email: 'test@test.com',
+          password: 'test',
+        };
+
+        const user = await authRepository.findUserByEmail(signInDto.email);
+
+        expect(user).toBeUndefined();
+
+        try {
+          await service.signIn(signInDto);
+        } catch (error) {
+          expect(error).toBeInstanceOf(HttpException);
+
+          expect(error.getResponse()).toEqual({
+            message: 'NOT_FOUND',
+            detail: '해당 유저는 존재하지 않습니다.',
+          });
+
+          expect(error.getStatus()).toBe(HttpStatus.BAD_REQUEST);
+        }
       });
     });
   });

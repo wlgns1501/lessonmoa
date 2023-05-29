@@ -9,11 +9,18 @@ export class AuthRepository extends BaseRepository<User> {
   async signUp(signUpDto: SignUpDto, location: Location) {
     const { nickname, email, password } = signUpDto;
 
+    // return await this.create({ email, password, nickname }).save();
+
     return await this.createQueryBuilder()
       .insert()
       .into(User)
       .values({ nickname, email, password, location })
+      .returning(['id', 'email', 'nickname'])
       .execute();
+  }
+
+  async findUserByEmail(email: string) {
+    return await this.findOne({ email });
   }
 
   async signOut(userId: number) {

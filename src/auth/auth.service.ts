@@ -40,6 +40,7 @@ export class AuthService {
       this.connection.getCustomRepository(LocationRepository);
 
     const { locationId } = signUpDto;
+
     const location = await this.locationRepository.getLocationById(locationId);
 
     if (!location) {
@@ -84,9 +85,7 @@ export class AuthService {
     this.authRepository = this.connection.getCustomRepository(AuthRepository);
     const { email, password } = signInDto;
 
-    const user = await this.authRepository.findOne({
-      email,
-    });
+    const user = await this.authRepository.findUserByEmail(email);
 
     if (!user) {
       throw new HttpException(
