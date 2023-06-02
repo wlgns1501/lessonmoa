@@ -7,6 +7,8 @@ import { LocationRepository } from 'src/repositories/location.repository';
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { SignInDto } from './dtos/signin.dto';
 import { HTTP_ERROR } from 'src/constants/http-error';
+import { async } from 'rxjs';
+import { POSTGRES_ERROR_CODE } from 'src/constants/postgres-error';
 
 jest.mock('src/repositories/auth.repository');
 jest.mock('src/repositories/location.repository');
@@ -121,7 +123,7 @@ describe('AuthService', () => {
     });
 
     describe('회원가입 테스트', () => {
-      it('중복 이메일 일 때 에러 반환', async () => {
+      it('중복 이메일 일 때 respository postgresql 에러 반환', async () => {
         const signUpDto: SignUpDto = {
           email: 'wlgns1501@gmail.com',
           password: 'test',
@@ -133,7 +135,23 @@ describe('AuthService', () => {
           .spyOn(locationRepository, 'getLocationById')
           .mockResolvedValue(mockLocation);
 
-        jest.spyOn(authRepository, 'signUp').mockRejectedValue(
+        const location = await locationRepository.getLocationById(
+          signUpDto.locationId,
+        );
+
+        jest.spyOn(authRepository, 'signUp').mockRejectedValue({
+          code: '23505',
+          detail: 'Key (email)=(wlgns1501@gmail.com) already exists.',
+        });
+
+        try {
+          await authRepository.signUp(signUpDto, location);
+        } catch (error) {
+          expect(error.code).toEqual(POSTGRES_ERROR_CODE.DUPLICATED_KEY_ERROR);
+          expect(error.detail.includes('email')).toEqual(true);
+        }
+
+        jest.spyOn(service, 'signUp').mockRejectedValue(
           new HttpException(
             {
               message: HTTP_ERROR.DUPLICATED_KEY_ERROR,
@@ -169,10 +187,20 @@ describe('AuthService', () => {
           .spyOn(locationRepository, 'getLocationById')
           .mockResolvedValue(mockLocation);
 
+        const location = await locationRepository.getLocationById(
+          signUpDto.locationId,
+        );
+
         jest.spyOn(authRepository, 'signUp').mockRejectedValue({
           code: '23505',
-          detail: 'Key (email)=(test@test.com) already exists.',
+          detail: 'Key (nickname)=(축구 꿈나무) already exists.',
         });
+
+        try {
+          await authRepository.signUp(signUpDto, location);
+        } catch (error) {
+          expect(error.detail.includes('nickname')).toEqual(true);
+        }
 
         jest.spyOn(service, 'signUp').mockRejectedValue(
           new HttpException(
@@ -187,8 +215,6 @@ describe('AuthService', () => {
         try {
           await service.signUp(signUpDto);
         } catch (error) {
-          console.log(error);
-
           expect(error).toBeInstanceOf(HttpException);
 
           expect(error.getResponse()).toEqual({
