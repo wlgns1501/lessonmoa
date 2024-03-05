@@ -1,20 +1,21 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import {
+  initializeTransactionalContext,
+  patchTypeORMRepositoryWithBaseRepository,
+} from 'typeorm-transactional-cls-hooked';
+import {
   DocumentBuilder,
   SwaggerCustomOptions,
   SwaggerModule,
 } from '@nestjs/swagger';
-import {
-  initializeTransactionalContext,
-  patchTypeORMRepositoryWithBaseRepository,
-} from 'typeorm-transactional-cls-hooked';
 import { CustomExceptionFilter } from './functions/all-exceptionfilter';
 
 async function bootstrap() {
   initializeTransactionalContext();
   patchTypeORMRepositoryWithBaseRepository();
   const app = await NestFactory.create(AppModule);
+
   app.useGlobalFilters(new CustomExceptionFilter());
 
   const config = new DocumentBuilder()
@@ -42,6 +43,6 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document, swaggerCustomOptions);
 
-  await app.listen(3000);
+  await app.listen(3001);
 }
 bootstrap();

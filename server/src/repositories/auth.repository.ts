@@ -20,7 +20,17 @@ export class AuthRepository extends BaseRepository<User> {
   }
 
   async findUserByEmail(email: string) {
-    return await this.findOne({ email });
+    return await this.createQueryBuilder()
+      .select([
+        'id',
+        'email',
+        'password',
+        'nickname',
+        'isAdmin',
+        'isInstructor',
+      ])
+      .where({ email })
+      .getOne();
   }
 
   async signOut(userId: number) {

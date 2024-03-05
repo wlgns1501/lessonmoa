@@ -8,18 +8,15 @@ import { HTTP_ERROR } from 'src/constants/http-error';
 import { POSTGRES_ERROR_CODE } from 'src/constants/postgres-error';
 import * as jwt from 'jsonwebtoken';
 import { User } from 'src/entities/user.entity';
-import { LocationRepository } from 'src/repositories/location.repository';
-import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class AuthService {
   private authRepository: AuthRepository;
-  private locationRepository: LocationRepository;
   constructor(private readonly connection: Connection) {}
 
   private getAccessToken(user: User) {
     return jwt.sign(
-      { email: user.email, isInstructor: user.isInstructor },
+      { email: user.email, isAdmin: user.isAdmin },
       process.env.JWT_SECRET_KEY,
       { expiresIn: '8h' },
     );
@@ -27,7 +24,7 @@ export class AuthService {
 
   private getRefreshToken(user: User) {
     return jwt.sign(
-      { email: user.email, isInstructor: user.isInstructor },
+      { email: user.email, isAdmin: user.isAdmin },
       process.env.JWT_SECRET_KEY,
       { expiresIn: '2d' },
     );
@@ -36,62 +33,58 @@ export class AuthService {
   @Transactional()
   async signUp(signUpDto: SignUpDto) {
     this.authRepository = this.connection.getCustomRepository(AuthRepository);
-    this.locationRepository =
-      this.connection.getCustomRepository(LocationRepository);
 
-    const { locationId } = signUpDto;
+    await this.authRepository.signUp(signUpDto);
+    return { success: true };
+    // catch (error) {
+    //   switch (error.code) {
+    //     case POSTGRES_ERROR_CODE.DUPLICATED_KEY_ERROR:
+    //       if (error.detail.includes('email')) {
+    //         throw new HttpException(
+    //           {
+    //             message: HTTP_ERROR.DUPLICATED_KEY_ERROR,
+    //             detail: '중복된 이메일입니다.',
+    //           },
+    //           HttpStatus.BAD_REQUEST,
+    //         );
+    //       } else if (error.detail.includes('nickname')) {
+    //         throw new HttpException(
+    //           {
+    //             message: HTTP_ERROR.DUPLICATED_KEY_ERROR,
+    //             detail: '중복된 닉네임입니다.',
+    //           },
+    //           HttpStatus.BAD_REQUEST,
+    //         );
+    //       }
+    //   }
 
-    const location = await this.locationRepository.getLocationById(locationId);
-
-    if (!location) {
-      throw new HttpException(
-        {
-          message: HTTP_ERROR.NOT_FOUND,
-          detail: '해당 지역은 존재하지 않습니다.',
-        },
-        HttpStatus.NOT_FOUND,
-      );
-    }
-
-    try {
-      await this.authRepository.signUp(signUpDto, location);
-
-      return { success: true };
-    } catch (error) {
-      switch (error.code) {
-        case POSTGRES_ERROR_CODE.DUPLICATED_KEY_ERROR:
-          if (error.detail.includes('email')) {
-            throw new HttpException(
-              {
-                message: HTTP_ERROR.DUPLICATED_KEY_ERROR,
-                detail: '중복된 이메일입니다.',
-              },
-              HttpStatus.BAD_REQUEST,
-            );
-          } else if (error.detail.includes('nickname')) {
-            throw new HttpException(
-              {
-                message: HTTP_ERROR.DUPLICATED_KEY_ERROR,
-                detail: '중복된 닉네임입니다.',
-              },
-              HttpStatus.BAD_REQUEST,
-            );
-          }
-      }
-    }
+    //   console.error();
+    // }
   }
 
   async signIn(signInDto: SignInDto) {
     this.authRepository = this.connection.getCustomRepository(AuthRepository);
     const { email, password } = signInDto;
 
-    const user = await this.authRepository.findUserByEmail(email);
+    const user = await this.authRepository.findOne({
+      email,
+    });
 
     if (!user) {
       throw new HttpException(
         {
           message: HTTP_ERROR.NOT_FOUND,
           detail: '해당 유저는 존재하지 않습니다.',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    if (!user.isAdmin) {
+      throw new HttpException(
+        {
+          message: HTTP_ERROR.DO_NOT_HAVE_PERMISSION,
+          detail: '해당 권한이 없습니다.',
         },
         HttpStatus.BAD_REQUEST,
       );

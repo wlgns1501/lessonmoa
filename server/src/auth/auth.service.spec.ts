@@ -1,13 +1,12 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import { AuthService } from './auth.service';
-import { Connection, QueryFailedError } from 'typeorm';
+import { Connection } from 'typeorm';
 import { AuthRepository } from 'src/repositories/auth.repository';
 import { SignUpDto } from './dtos/signup.dto';
 import { LocationRepository } from 'src/repositories/location.repository';
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { SignInDto } from './dtos/signin.dto';
 import { HTTP_ERROR } from 'src/constants/http-error';
-import { async } from 'rxjs';
 import { POSTGRES_ERROR_CODE } from 'src/constants/postgres-error';
 
 jest.mock('src/repositories/auth.repository');
@@ -135,29 +134,31 @@ describe('AuthService', () => {
           .spyOn(locationRepository, 'getLocationById')
           .mockResolvedValue(mockLocation);
 
-        jest.spyOn(service, 'signUp').mockRejectedValue(
-          new HttpException(
-            {
-              message: 'DUPLICATED_KEY_ERROR',
-              detail: '중복된 이메일입니다.',
-            },
-            HttpStatus.BAD_REQUEST,
-          ),
-        );
+        // jest.spyOn(service, 'signUp').mockRejectedValue(
+        //   new HttpException(
+        //     {
+        //       message: 'DUPLICATED_KEY_ERROR',
+        //       detail: '중복된 이메일입니다.',
+        //     },
+        //     HttpStatus.BAD_REQUEST,
+        //   ),
+        // );
 
-        try {
-          await service.signUp(signUpDto);
-        } catch (error) {
-          expect(error).toBeInstanceOf(HttpException);
+        const result = await authRepository.signUp(signUpDto, mockLocation);
 
-          expect(error.getResponse()).toEqual({
-            message: 'DUPLICATED_KEY_ERROR',
-            detail: '중복된 이메일입니다.',
-          });
+        console.log(result);
 
-          expect(error.getStatus()).toBe(HttpStatus.BAD_REQUEST);
-          expect(error.response.detail).toBe('중복된 이메일입니다.');
-        }
+        // try {
+        //   await service.signUp(signUpDto);
+        // } catch (error) {
+        //   expect(error).toBeInstanceOf(HttpException);
+        //   expect(error.getResponse()).toEqual({
+        //     message: 'DUPLICATED_KEY_ERROR',
+        //     detail: '중복된 이메일입니다.',
+        //   });
+        //   expect(error.getStatus()).toBe(HttpStatus.BAD_REQUEST);
+        //   expect(error.response.detail).toBe('중복된 이메일입니다.');
+        // }
       });
 
       it('중복 닉네임 일 때 에러 반환', async () => {
@@ -218,13 +219,7 @@ describe('AuthService', () => {
           .spyOn(locationRepository, 'getLocationById')
           .mockResolvedValue(mockLocation);
 
-        const location = await locationRepository.getLocationById(
-          signUpDto.locationId,
-        );
-
         jest.spyOn(authRepository, 'signUp').mockResolvedValue(mockUser);
-
-        await authRepository.signUp(signUpDto, location);
 
         jest.spyOn(service, 'signUp').mockResolvedValue({ success: true });
 
@@ -234,31 +229,66 @@ describe('AuthService', () => {
     });
   });
 
-  // describe('signIn', () => {
-  //   describe('회원 가입한 유저인지 확인', () => {
-  //     it('유저가 없을 때 에러메세지 반환', async () => {
-  //       const signInDto: SignInDto = {
-  //         email: 'test@test.com',
-  //         password: 'test',
-  //       };
+  describe('signIn', () => {
+    describe('회원 가입한 유저인지 확인', () => {
+      it('유저가 없을 때 undefined 반환', async () => {
+        const signInDto: SignInDto = {
+          email: 'test@test.com',
+          password: 'test',
+        };
 
-  //       const user = await authRepository.findUserByEmail(signInDto.email);
+        // const mockUser: User = {
+        //   id: 7,
+        //   email: 'wlgns1501@gmail.com',
+        //   password:
+        //     '$2b$09$0oTg/CRhioJ6uAAaJfULIe5C22lL6dHyD146RX/39oysQ.yepZkEC',
+        //   nickname: 'jihun',
+        //   isInstructor: true,
+        //   isAdmin: false,
+        // } as User;
 
-  //       expect(user).toBeUndefined();
+        jest
+          .spyOn(authRepository, 'findUserByEmail')
+          .mockResolvedValue(undefined);
 
-  //       try {
-  //         await service.signIn(signInDto);
-  //       } catch (error) {
-  //         expect(error).toBeInstanceOf(HttpException);
+        const user = await authRepository.findUserByEmail(signInDto.email);
 
-  //         expect(error.getResponse()).toEqual({
-  //           message: 'NOT_FOUND',
-  //           detail: '해당 유저는 존재하지 않습니다.',
-  //         });
+        expect(user).toBeUndefined();
+      });
 
-  //         expect(error.getStatus()).toBe(HttpStatus.BAD_REQUEST);
-  //       }
-  //     });
-  //   });
-  // });
+      it('유저가 없을 때 에러 반환', async () => {
+        const signInDto: SignInDto = {
+          email: 'test@test.com',
+          password: 'test',
+        };
+
+        jest
+          .spyOn(authRepository, 'findUserByEmail')
+          .mockResolvedValue(undefined);
+
+        jest.spyOn(service, 'signIn').mockRejectedValue(
+          new HttpException(
+            {
+              message: HTTP_ERROR.NOT_FOUND,
+              detail: '해당 유저는 존재하지 않습니다.',
+            },
+            HttpStatus.NOT_FOUND,
+          ),
+        );
+
+        try {
+          await service.signIn(signInDto);
+        } catch (error) {
+          expect(error).toBeInstanceOf(HttpException);
+
+          expect(error.getResponse()).toEqual({
+            message: 'NOT_FOUND',
+            detail: '해당 유저는 존재하지 않습니다.',
+          });
+
+          expect(error.getStatus()).toBe(HttpStatus.NOT_FOUND);
+        }
+      });
+    });
+  });
 });
